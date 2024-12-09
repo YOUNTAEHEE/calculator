@@ -8,12 +8,14 @@ export default function Home() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("0");
   const [history, setHistory] = useState(false);
+  const [history_list, setHistory_list] = useState([]);
   const [parenthesis, setParenthesis] = useState(false);
 
   const handleMonitorNumber = (e) => {
+    setResult("");
     const value = e.target.textContent;
     const lastChar = monitor_number[monitor_number.length - 1];
-    if (/[+\-×÷]/.test(lastChar) && /[+\-×÷]/.test(value)) {
+    if (/[+\-×÷%]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
       return;
     } else {
       setMonitor_number((prev) => prev + value);
@@ -26,22 +28,45 @@ export default function Home() {
 
   const handleAllDel = (e) => {
     setMonitor_number("");
+    setResult("");
   };
 
   const handleMonitorResult = (e) => {
-    let formula = monitor_number
-      .replace(/÷/g, "/")
-      .replace(/×/g, "*")
-      .replace(/−/g, "-")
-      .replace(/\+/g, "+")
-      .replace(/%/g, "%");
+    if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+      return;
+    }
+
+    let formula = monitor_number;
+
+    formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
+
+    formula = formula.replace(
+      /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+      (match, number1, operator, number2) => {
+        const op = operator === "×" || operator === "*" ? "*" : "/";
+        return `(${number1} ${op} ${number2 / 100})`;
+      }
+    );
+
+    formula = formula.replace(
+      /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+      (match, number1, operator, number2) => {
+        return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+      }
+    );
+
     const result = new Function("return " + formula)();
 
     const format_result = Number.isInteger(result)
       ? result.toString()
-      : result.toFixed(4);
+      : parseFloat(result.toFixed(5)).toString();
 
     setResult(format_result);
+    setHistory_list((prev) => [
+      ...prev,
+      { monitor_number: monitor_number, result: format_result },
+    ]);
+    setMonitor_number("");
   };
 
   const handleParenthesis = (e) => {
@@ -186,14 +211,12 @@ export default function Home() {
           </div>
         </div>
         <div className={`history_wrap ${history ? "on" : ""}`}>
-          <div className="history_one">
-            <p className="history_formula">계산식</p>
-            <p className="history_result">결과</p>
-          </div>
-          <div className="history_one">
-            <p className="history_formula">계산식</p>
-            <p className="history_result">결과</p>
-          </div>
+          {history_list.map((item, index) => (
+            <div className="history_one" key={index}>
+              <p className="history_formula">{item.monitor_number}</p>
+              <p className="history_result">{item.result}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
