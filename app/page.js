@@ -12,12 +12,54 @@ export default function Home() {
   const [parenthesis, setParenthesis] = useState(false);
 
   const handleMonitorNumber = (e) => {
-    setResult("");
     const value = e.target.textContent;
     const lastChar = monitor_number[monitor_number.length - 1];
+
+    if (monitor_number === "" && /[+\-×÷%]/.test(value)) {
+      return;
+    }
+
     if (/[+\-×÷%]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
       return;
+    }
+    if (/[+\-×÷%]/.test(value)) {
+      setMonitor_number((prev) => prev + value);
+      return;
+    }
+
+    // 숫자나 '.' 입력 시 처리
+    if (!/[+\-×÷%]/.test(value)) {
+      if (monitor_number === "") {
+        // 초기 상태에서 첫 숫자 입력
+        setMonitor_number(value);
+        setResult(value);
+      } else if (/[+\-×÷%]$/.test(monitor_number)) {
+        // 연산자 뒤에 숫자 입력 시, result에만 추가(두 번째 피연산자)
+        if (result === "0" || /[+\-×÷%]$/.test(monitor_number)) {
+          setResult(value);
+        } else {
+          setResult((prev) => prev + value);
+        }
+      } else {
+        // 아직 연산자가 나오지 않은 상태의 첫 번째 숫자 연속 입력
+        setMonitor_number((prev) => prev + value);
+        setResult((prev) => (prev === "0" ? value : prev + value));
+      }
     } else {
+      // 연산자 입력 시 처리
+      // monitor_number가 비었거나 마지막이 연산자일 경우 연속 연산자 입력 방지
+      if (monitor_number === "" || /[+\-×÷%]$/.test(monitor_number)) {
+        return;
+      }
+
+      // 이미 첫 번째 숫자와 두 번째 숫자를 모두 입력한 상태에서 다시 연산자를 눌렀을 때
+      // monitor_number에는 "첫 번째숫자+연산자", result에는 두 번째 숫자가 들어 있음.
+      // 이 경우 바로 계산을 한 뒤 monitor_number와 result를 결과로 갱신
+      if (/[+\-×÷%]/.test(monitor_number)) {
+        handleMonitorResultAuto();
+      }
+
+      // 계산 후 새 연산자 붙이기
       setMonitor_number((prev) => prev + value);
     }
   };
@@ -29,6 +71,53 @@ export default function Home() {
   const handleAllDel = (e) => {
     setMonitor_number("");
     setResult("");
+  };
+
+  const handleMonitorResultAuto = (currentResult, value) => {
+    if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+      return;
+    }
+
+    let formula = monitor_number;
+    if (/[+\-×÷%]$/.test(monitor_number)) {
+      formula = monitor_number + result;
+    }
+    formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
+
+    formula = formula.replace(
+      /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+      (match, number1, operator, number2) => {
+        const op = operator === "×" || operator === "*" ? "*" : "/";
+        return `(${number1} ${op} ${number2 / 100})`;
+      }
+    );
+
+    formula = formula.replace(
+      /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+      (match, number1, operator, number2) => {
+        return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+      }
+    );
+
+    // 연산자추가
+    // formula = formula.replace(
+    //   /(\d+\.?\d*)\s*[1/x]/g,
+    //   (match, number1, operator) => {
+    //     return `(${number1} ${operator} * ${1 / number1})`;
+    //   }
+    // );
+    const result = new Function("return " + formula)();
+
+    const format_result = Number.isInteger(result)
+      ? result.toString()
+      : parseFloat(result.toFixed(5)).toString();
+
+    setResult(format_result);
+    setMonitor_number(format_result + value);
+    setHistory_list((prev) => [
+      ...prev,
+      { monitor_number: monitor_number, result: format_result },
+    ]);
   };
 
   const handleMonitorResult = (e) => {
@@ -55,6 +144,14 @@ export default function Home() {
       }
     );
 
+    // 연산자추가
+    // formula = formula.replace(
+    //   /(\d+\.?\d*)\s*[1/x]/g,
+    //   (match, number1, operator) => {
+    //     return `(${number1} ${operator} * ${1 / number1})`;
+    //   }
+    // );
+
     const result = new Function("return " + formula)();
 
     const format_result = Number.isInteger(result)
@@ -66,6 +163,7 @@ export default function Home() {
       ...prev,
       { monitor_number: monitor_number, result: format_result },
     ]);
+
     setMonitor_number("");
   };
 
@@ -168,6 +266,28 @@ export default function Home() {
                   <FaDeleteLeft />
                 </div>
               </div>
+              {/* 연산자 추가 */}
+              <div className="button_box">
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  1/x
+                </div>
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  x²
+                </div>
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  ²√x
+                </div>
+              </div>
+              {/* 연산자 추가끝 */}
               <div className="button_box">
                 <div
                   className="num_button s_button s_b_big"

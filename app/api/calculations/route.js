@@ -1,12 +1,10 @@
-import clientPromise from "@/lib/mongodb";
+import { connectDB } from "./mongodb";
 
 export async function POST(request) {
   try {
-    const client = await clientPromise;
-    const db = client.db("calculatorDB");
+    connectDB();
     const { monitor_number, result } = await request.json();
-
-    const calculation = await db.collection("calculations").insertOne({
+    const calculation = await db.collection("study").insertOne({
       formula: monitor_number,
       result: result,
       timestamp: new Date(),
@@ -20,11 +18,10 @@ export async function POST(request) {
 
 export async function GET() {
   try {
-    const client = await clientPromise;
-    const db = client.db("calculatorDB");
+    connectDB();
 
     const calculations = await db
-      .collection("calculations")
+      .collection("study")
       .find({})
       .sort({ timestamp: -1 })
       .toArray();
