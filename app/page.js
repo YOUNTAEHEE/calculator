@@ -89,6 +89,57 @@ export default function Home() {
       element.scrollLeft = element.scrollWidth;
     }
   }, [monitor_number]);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      switch (e.key) {
+        case "/":
+          handleMonitorNumber({ target: { textContent: "÷" } });
+          break;
+        case "*":
+          handleMonitorNumber({ target: { textContent: "×" } });
+          break;
+        case "-":
+          handleMonitorNumber({ target: { textContent: "-" } });
+          break;
+        case "+":
+          handleMonitorNumber({ target: { textContent: "+" } });
+          break;
+        case "%":
+          handleMonitorNumber({ target: { textContent: "%" } });
+          break;
+        case "Enter":
+          handleMonitorResult();
+          break;
+
+        case "0":
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+        case "6":
+        case "7":
+        case "8":
+        case "9":
+          handleMonitorNumber({ target: { textContent: e.key } });
+          break;
+        case ".":
+          handleMonitorNumber({ target: { textContent: "." } });
+          break;
+        case "Backspace":
+          handleMonitorOneDel();
+          break;
+        case "Delete":
+          handleAllDel();
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [monitor_number]);
+
   return (
     <div className="main_container">
       <div className={`main_content ${history ? "on" : ""}`}>
