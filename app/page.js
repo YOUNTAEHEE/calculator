@@ -38,6 +38,22 @@ export default function Home() {
         );
         return;
       }
+      if (value === "x²") {
+        let number = parseFloat(match[1]);
+        let changeValue = `(${number} * ${number})`;
+        setMonitor_number(
+          monitor_number.slice(0, -match[0].length) + changeValue
+        );
+        return;
+      }
+      if (value === "²√x") {
+        let number = parseFloat(match[1]);
+        let changeValue = Math.sqrt(number);
+        setMonitor_number(
+          monitor_number.slice(0, -match[0].length) + changeValue
+        );
+        return;
+      }
       setMonitor_number((prev) => prev + value);
     }
   };
@@ -76,14 +92,6 @@ export default function Home() {
     );
 
     formula = formula.replace();
-
-    // 연산자추가
-    // formula = formula.replace(
-    //   /(\d+\.?\d*)\s*[1/x]/g,
-    //   (match, number1, operator) => {
-    //     return `(${number1} ${operator} * ${1 / number1})`;
-    //   }
-    // );
 
     const result = new Function("return " + formula)();
 
@@ -204,7 +212,6 @@ export default function Home() {
             </div>
             <div className="button_box_wrap">
               <div className="button_box">
-                {/* <div className="num_button s_button s_b_f_2">CE</div> */}
                 <div
                   className="num_button s_button s_b_f_2 all_del_button"
                   onClick={handleAllDel}
