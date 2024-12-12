@@ -351,14 +351,12 @@ export default function VersionOne() {
         </div>
       </div>
       <div className={`history_wrap ${history ? "on" : ""}`}>
-        <div className="history_small_wrap">
-          {history_list.map((item, index) => (
-            <div className="history_one" key={index}>
-              <p className="history_formula">{item.monitor_number}</p>
-              <p className="history_result">{item.monitor_result}</p>
-            </div>
-          ))}
-        </div>
+        {history_list.map((item, index) => (
+          <div className="history_one" key={index}>
+            <p className="history_formula">{item.monitor_number}</p>
+            <p className="history_result">{item.monitor_result}</p>
+          </div>
+        ))}
       </div>
     </div>
     // </div>

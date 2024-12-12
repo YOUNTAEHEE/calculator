@@ -156,39 +156,45 @@
     }
   }
   .history_wrap {
-    width: 350px;
-    height: 100%;
-    border-radius: 5px;
-    background-color: #f6f6ff;
     display: none;
+    width: 350px;
+    height: auto;
     &.on {
       display: block;
     }
     &:not(:empty) {
       border: 1px solid #b8b8e6;
     }
-    .history_one {
-      width: 100%;
-      height: auto;
-      padding: 10px;
-      margin-top: 20px;
-      text-align: right;
-      border-top: 1px solid #b8b8e6;
-      &:first-child {
-        margin-top: 0;
-        border-top: none;
-      }
 
-      &:last-child {
-        margin-bottom: 20px;
-      }
-      .history_formula {
-        color: #666;
-      }
-      .history_result {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-top: 10px;
+    .history_small_wrap {
+      width: 100%;
+      height: 100%;
+      border-radius: 5px;
+      background-color: #f6f6ff;
+
+      .history_one {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        margin-top: 20px;
+        text-align: right;
+        border-top: 1px solid #b8b8e6;
+        &:first-child {
+          margin-top: 0;
+          border-top: none;
+        }
+
+        &:last-child {
+          margin-bottom: 20px;
+        }
+        .history_formula {
+          color: #666;
+        }
+        .history_result {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin-top: 10px;
+        }
       }
     }
   }

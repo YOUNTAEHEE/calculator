@@ -186,10 +186,22 @@ export default function VersionOne() {
         : parseFloat(result.toFixed(5)).toString();
 
       setResult(format_result);
-      setHistory_list((prev) => [
+      setHistory_list((prev) => {
+        
+        const updatedHistory = [
         ...prev,
         { monitor_number: monitor_number, monitor_result: format_result },
-      ]);
+      ];
+
+      if(updatedHistory.length > 8)
+      {
+        updatedHistory.shift();
+      }
+      return updatedHistory;
+    }
+    
+    
+    );
       // // 디비추가
       // connectDB();
       // // 디비추가끝
@@ -461,12 +473,14 @@ export default function VersionOne() {
         </div>
       </div>
       <div className={`history_wrap ${history ? "on" : ""}`}>
-        {history_list.map((item, index) => (
-          <div className="history_one" key={index}>
-            <p className="history_formula">{item.monitor_number}</p>
-            <p className="history_result">{item.monitor_result}</p>
-          </div>
-        ))}
+        <div className="history_small_wrap">
+          {history_list.map((item, index) => (
+            <div className="history_one" key={index}>
+              <p className="history_formula">{item.monitor_number}</p>
+              <p className="history_result">{item.monitor_result}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
     // </div>
