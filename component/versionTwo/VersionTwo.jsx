@@ -19,6 +19,7 @@ export default function VersionOne() {
     const value = e.target.textContent;
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
+    const match2 = monitor_number.match(/(\d+\.?\d*)/);
 
     if (/[%]/.test(lastChar) && /[%]/.test(value)) {
       return;
@@ -57,14 +58,24 @@ export default function VersionOne() {
         );
         return;
       }
-      // handleMonitorResultAuto();
-      // setMonitor_number((prev) => prev + value);
-      if (/\d/.test(monitor_number) && /\d/.test(value)) {
-        setResult(value);
-        handleMonitorResultAuto(value);
-      } else {
+
+      
+      const newMonitorNumber = monitor_number + value;
+    
+
+      if (/[\d.]/.test(value)) {
         setMonitor_number((prev) => prev + value);
+        setResult((prev) => prev + value);
+        return;
+      }else {
+        setResult("");
+        handleMonitorResultAuto();
+        setMonitor_number(monitor_number + value);
+
+
       }
+    
+   
     }
   };
 
@@ -77,7 +88,55 @@ export default function VersionOne() {
     setResult("");
   };
 
-  const handleMonitorResultAuto = (value) => {
+  // const handleMonitorResultAuto = (e) => {
+  //   try {
+  //     if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+  //       return;
+  //     }
+
+  //     let formula = monitor_number + result;
+
+  //     formula = formula
+  //       .replace(/÷/g, "/")
+  //       .replace(/×/g, "*")
+  //       .replace(/−/g, "-");
+
+  //     formula = formula.replace(
+  //       /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+  //       (match, number1, operator, number2) => {
+  //         const op = operator === "×" || operator === "*" ? "*" : "/";
+  //         return `(${number1} ${op} ${number2 / 100})`;
+  //       }
+  //     );
+
+  //     formula = formula.replace(
+  //       /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+  //       (match, number1, operator, number2) => {
+  //         return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+  //       }
+  //     );
+
+  //     const result2 = new Function("return " + formula)();
+
+  //     const format_result = Number.isInteger(result2)
+  //       ? result2.toString()
+  //       : parseFloat(result2.toFixed(5)).toString();
+
+  //     setResult(format_result);
+  //     setHistory_list((prev) => [
+  //       ...prev,
+  //       { monitor_number: monitor_number, monitor_result: format_result },
+  //     ]);
+  //     // // 디비추가
+  //     // connectDB();
+  //     // // 디비추가끝
+  //     setMonitor_number(format_result);
+  //   } catch {
+  //     throw new Error("fail");
+  //   }
+  // };
+
+  const handleMonitorResultAuto = () => {
     try {
       if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
         return;
@@ -120,58 +179,11 @@ export default function VersionOne() {
       // connectDB();
       // // 디비추가끝
       setMonitor_number(format_result);
+
     } catch {
       throw new Error("fail");
     }
   };
-
-  // const handleMonitorResultAuto = (e) => {
-  //   try {
-  //     if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
-  //       return;
-  //     }
-
-  //     let formula = monitor_number;
-
-  //     formula = formula
-  //       .replace(/÷/g, "/")
-  //       .replace(/×/g, "*")
-  //       .replace(/−/g, "-");
-
-  //     formula = formula.replace(
-  //       /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
-  //       (match, number1, operator, number2) => {
-  //         const op = operator === "×" || operator === "*" ? "*" : "/";
-  //         return `(${number1} ${op} ${number2 / 100})`;
-  //       }
-  //     );
-
-  //     formula = formula.replace(
-  //       /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
-  //       (match, number1, operator, number2) => {
-  //         return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
-  //       }
-  //     );
-
-  //     const result = new Function("return " + formula)();
-
-  //     const format_result = Number.isInteger(result)
-  //       ? result.toString()
-  //       : parseFloat(result.toFixed(5)).toString();
-
-  //     setResult(format_result);
-  //     setHistory_list((prev) => [
-  //       ...prev,
-  //       { monitor_number: monitor_number, monitor_result: format_result },
-  //     ]);
-  //     // // 디비추가
-  //     // connectDB();
-  //     // // 디비추가끝
-  //     setMonitor_number(format_result);
-  //   } catch {
-  //     throw new Error("fail");
-  //   }
-  // };
 
   const handleMonitorResult = (e) => {
     try {
@@ -241,7 +253,6 @@ export default function VersionOne() {
       element.scrollLeft = element.scrollWidth;
     }
   }, [monitor_number]);
-
   useEffect(() => {
     const handleKeyPress = (e) => {
       switch (e.key) {
