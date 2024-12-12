@@ -5,7 +5,7 @@ import styles from "./versionTwo.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
-
+//반응형일때 달라지게
 // 버전2 윈도우 계산기 처럼 화면 출력 방식을 바꾸기
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
@@ -13,13 +13,13 @@ export default function VersionOne() {
   const [history, setHistory] = useState(false);
   const [history_list, setHistory_list] = useState([]);
   const [parenthesis, setParenthesis] = useState(false);
+  const [justCalculated, setJustCalculated] = useState(false);
 
   const handleMonitorNumber = (e) => {
-    setResult("");
     const value = e.target.textContent;
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
-    const match2 = monitor_number.match(/(\d+\.?\d*)/);
+    const match2 = monitor_number.match(/^(\d+\.?\d*)/);
 
     if (/[%]/.test(lastChar) && /[%]/.test(value)) {
       return;
@@ -35,6 +35,9 @@ export default function VersionOne() {
       return;
     } else {
       if (value === "1/x") {
+        if (!monitor_number || monitor_number.trim() === "") {
+          return; 
+        }
         let number = parseFloat(match[1]);
         let changeValue = `1 / ${number}`;
         setMonitor_number(
@@ -43,6 +46,9 @@ export default function VersionOne() {
         return;
       }
       if (value === "x²") {
+        if (!monitor_number || monitor_number.trim() === "") {
+          return; 
+        }
         let number = parseFloat(match[1]);
         let changeValue = `(${number} * ${number})`;
         setMonitor_number(
@@ -51,6 +57,9 @@ export default function VersionOne() {
         return;
       }
       if (value === "²√x") {
+        if (!monitor_number || monitor_number.trim() === "") {
+          return; 
+        }
         let number = parseFloat(match[1]);
         let changeValue = Math.sqrt(number);
         setMonitor_number(
@@ -62,17 +71,23 @@ export default function VersionOne() {
       
       const newMonitorNumber = monitor_number + value;
     
-
+      
       if (/[\d.]/.test(value)) {
-        setMonitor_number((prev) => prev + value);
-        setResult((prev) => prev + value);
+       
+          setMonitor_number((prev) => prev + value);
+          setResult((prev) => {
+            if (prev === "" || prev === "0") {
+              return value;
+
+            }
+            return prev + value;
+          });
         return;
       }else {
         setResult("");
         handleMonitorResultAuto();
-        setMonitor_number(monitor_number + value);
-
-
+        setMonitor_number((prev) => prev + value);
+        setResult("");
       }
     
    
@@ -449,7 +464,7 @@ export default function VersionOne() {
         {history_list.map((item, index) => (
           <div className="history_one" key={index}>
             <p className="history_formula">{item.monitor_number}</p>
-            <p className="history_result">{item.result}</p>
+            <p className="history_result">{item.monitor_result}</p>
           </div>
         ))}
       </div>

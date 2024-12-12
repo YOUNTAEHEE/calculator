@@ -174,10 +174,13 @@
       margin-top: 20px;
       text-align: right;
       border-top: 1px solid #b8b8e6;
-      &:first-child,
-      :last-child {
+      &:first-child {
         margin-top: 0;
         border-top: none;
+      }
+
+      &:last-child {
+        margin-bottom: 20px;
       }
       .history_formula {
         color: #666;

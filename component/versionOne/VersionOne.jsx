@@ -32,6 +32,9 @@ export default function VersionOne() {
       return;
     } else {
       if (value === "1/x") {
+        if (!monitor_number || monitor_number.trim() === "") {
+          return; 
+        }
         let number = parseFloat(match[1]);
         let changeValue = `1 / ${number}`;
         setMonitor_number(
@@ -40,6 +43,9 @@ export default function VersionOne() {
         return;
       }
       if (value === "x²") {
+        if (!monitor_number || monitor_number.trim() === "") {
+          return; 
+        }
         let number = parseFloat(match[1]);
         let changeValue = `(${number} * ${number})`;
         setMonitor_number(
@@ -48,6 +54,9 @@ export default function VersionOne() {
         return;
       }
       if (value === "²√x") {
+        if (!monitor_number || monitor_number.trim() === "") {
+          return; 
+        }
         let number = parseFloat(match[1]);
         let changeValue = Math.sqrt(number);
         setMonitor_number(
@@ -103,10 +112,22 @@ export default function VersionOne() {
         : parseFloat(result.toFixed(5)).toString();
 
       setResult(format_result);
-      setHistory_list((prev) => [
+      setHistory_list((prev) => {
+        
+        const updatedHistory = [
         ...prev,
         { monitor_number: monitor_number, monitor_result: format_result },
-      ]);
+      ];
+
+      if(updatedHistory.length > 8)
+      {
+        updatedHistory.shift();
+      }
+      return updatedHistory;
+    }
+    
+    
+    );
       // // 디비추가
       // connectDB();
       // // 디비추가끝
@@ -330,12 +351,14 @@ export default function VersionOne() {
         </div>
       </div>
       <div className={`history_wrap ${history ? "on" : ""}`}>
-        {history_list.map((item, index) => (
-          <div className="history_one" key={index}>
-            <p className="history_formula">{item.monitor_number}</p>
-            <p className="history_result">{item.result}</p>
-          </div>
-        ))}
+        <div className="history_small_wrap">
+          {history_list.map((item, index) => (
+            <div className="history_one" key={index}>
+              <p className="history_formula">{item.monitor_number}</p>
+              <p className="history_result">{item.monitor_result}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
     // </div>
