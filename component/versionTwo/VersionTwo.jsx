@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import styles from "./versionOne.scss";
+import styles from "./versionTwo.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
+
+// 버전2 윈도우 계산기 처럼 화면 출력 방식을 바꾸기
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("0");
@@ -55,7 +57,14 @@ export default function VersionOne() {
         );
         return;
       }
-      setMonitor_number((prev) => prev + value);
+      // handleMonitorResultAuto();
+      // setMonitor_number((prev) => prev + value);
+      if (/\d/.test(monitor_number) && /\d/.test(value)) {
+        setResult(value);
+        handleMonitorResultAuto(value);
+      } else {
+        setMonitor_number((prev) => prev + value);
+      }
     }
   };
 
@@ -67,6 +76,102 @@ export default function VersionOne() {
     setMonitor_number("");
     setResult("");
   };
+
+  const handleMonitorResultAuto = (value) => {
+    try {
+      if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+        return;
+      }
+
+      let formula = monitor_number;
+
+      formula = formula
+        .replace(/÷/g, "/")
+        .replace(/×/g, "*")
+        .replace(/−/g, "-");
+
+      formula = formula.replace(
+        /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+        (match, number1, operator, number2) => {
+          const op = operator === "×" || operator === "*" ? "*" : "/";
+          return `(${number1} ${op} ${number2 / 100})`;
+        }
+      );
+
+      formula = formula.replace(
+        /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+        (match, number1, operator, number2) => {
+          return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+        }
+      );
+
+      const result = new Function("return " + formula)();
+
+      const format_result = Number.isInteger(result)
+        ? result.toString()
+        : parseFloat(result.toFixed(5)).toString();
+
+      setResult(format_result);
+      setHistory_list((prev) => [
+        ...prev,
+        { monitor_number: monitor_number, monitor_result: format_result },
+      ]);
+      // // 디비추가
+      // connectDB();
+      // // 디비추가끝
+      setMonitor_number(format_result);
+    } catch {
+      throw new Error("fail");
+    }
+  };
+
+  // const handleMonitorResultAuto = (e) => {
+  //   try {
+  //     if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+  //       return;
+  //     }
+
+  //     let formula = monitor_number;
+
+  //     formula = formula
+  //       .replace(/÷/g, "/")
+  //       .replace(/×/g, "*")
+  //       .replace(/−/g, "-");
+
+  //     formula = formula.replace(
+  //       /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+  //       (match, number1, operator, number2) => {
+  //         const op = operator === "×" || operator === "*" ? "*" : "/";
+  //         return `(${number1} ${op} ${number2 / 100})`;
+  //       }
+  //     );
+
+  //     formula = formula.replace(
+  //       /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+  //       (match, number1, operator, number2) => {
+  //         return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+  //       }
+  //     );
+
+  //     const result = new Function("return " + formula)();
+
+  //     const format_result = Number.isInteger(result)
+  //       ? result.toString()
+  //       : parseFloat(result.toFixed(5)).toString();
+
+  //     setResult(format_result);
+  //     setHistory_list((prev) => [
+  //       ...prev,
+  //       { monitor_number: monitor_number, monitor_result: format_result },
+  //     ]);
+  //     // // 디비추가
+  //     // connectDB();
+  //     // // 디비추가끝
+  //     setMonitor_number(format_result);
+  //   } catch {
+  //     throw new Error("fail");
+  //   }
+  // };
 
   const handleMonitorResult = (e) => {
     try {
