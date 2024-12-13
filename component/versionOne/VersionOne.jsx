@@ -33,7 +33,7 @@ export default function VersionOne() {
     } else {
       if (value === "1/x") {
         if (!monitor_number || monitor_number.trim() === "") {
-          return; 
+          return;
         }
         let number = parseFloat(match[1]);
         let changeValue = `1 / ${number}`;
@@ -44,7 +44,7 @@ export default function VersionOne() {
       }
       if (value === "x²") {
         if (!monitor_number || monitor_number.trim() === "") {
-          return; 
+          return;
         }
         let number = parseFloat(match[1]);
         let changeValue = `(${number} * ${number})`;
@@ -55,7 +55,7 @@ export default function VersionOne() {
       }
       if (value === "²√x") {
         if (!monitor_number || monitor_number.trim() === "") {
-          return; 
+          return;
         }
         let number = parseFloat(match[1]);
         let changeValue = Math.sqrt(number);
@@ -78,63 +78,49 @@ export default function VersionOne() {
   };
 
   const handleMonitorResult = (e) => {
-    try {
-      if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
-        return;
+    if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+      return;
+    }
+
+    let formula = monitor_number;
+
+    formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
+
+    formula = formula.replace(
+      /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+      (match, number1, operator, number2) => {
+        const op = operator === "×" || operator === "*" ? "*" : "/";
+        return `(${number1} ${op} ${number2 / 100})`;
       }
+    );
 
-      let formula = monitor_number;
+    formula = formula.replace(
+      /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+      (match, number1, operator, number2) => {
+        return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+      }
+    );
 
-      formula = formula
-        .replace(/÷/g, "/")
-        .replace(/×/g, "*")
-        .replace(/−/g, "-");
+    const result = new Function("return " + formula)();
 
-      formula = formula.replace(
-        /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
-        (match, number1, operator, number2) => {
-          const op = operator === "×" || operator === "*" ? "*" : "/";
-          return `(${number1} ${op} ${number2 / 100})`;
-        }
-      );
+    const format_result = Number.isInteger(result)
+      ? result.toString()
+      : parseFloat(result.toFixed(5)).toString();
 
-      formula = formula.replace(
-        /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
-        (match, number1, operator, number2) => {
-          return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
-        }
-      );
-
-      const result = new Function("return " + formula)();
-
-      const format_result = Number.isInteger(result)
-        ? result.toString()
-        : parseFloat(result.toFixed(5)).toString();
-
-      setResult(format_result);
-      setHistory_list((prev) => {
-        
-        const updatedHistory = [
+    setResult(format_result);
+    setHistory_list((prev) => {
+      const updatedHistory = [
         ...prev,
         { monitor_number: monitor_number, monitor_result: format_result },
       ];
 
-      if(updatedHistory.length > 8)
-      {
+      if (updatedHistory.length > 8) {
         updatedHistory.shift();
       }
       return updatedHistory;
-    }
-    
-    
-    );
-      // // 디비추가
-      // connectDB();
-      // // 디비추가끝
-      setMonitor_number("");
-    } catch {
-      throw new Error("fail");
-    }
+    });
+
+    setMonitor_number("");
   };
 
   const handleParenthesis = (e) => {
@@ -209,7 +195,6 @@ export default function VersionOne() {
   }, [monitor_number]);
 
   return (
-    // <div className="main_container">
     <div className={`main_content ${history ? "on" : ""}`}>
       <div className="main_box">
         <div className="r_monitor">
@@ -359,6 +344,5 @@ export default function VersionOne() {
         ))}
       </div>
     </div>
-    // </div>
   );
 }
