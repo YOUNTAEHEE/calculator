@@ -5,12 +5,15 @@ import styles from "./versionOne.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
+import { FaTrashAlt } from "react-icons/fa";
+import { v4 as uuidv4 } from "uuid";
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("0");
   const [history, setHistory] = useState(false);
   const [history_list, setHistory_list] = useState([]);
   const [parenthesis, setParenthesis] = useState(false);
+  const [check_list, setCheck_list] = useState([]);
 
   const handleMonitorNumber = (e) => {
     setResult("");
@@ -114,9 +117,9 @@ export default function VersionOne() {
         { monitor_number: monitor_number, monitor_result: format_result },
       ];
 
-      if (updatedHistory.length > 8) {
-        updatedHistory.shift();
-      }
+      // if (updatedHistory.length > 8) {
+      //   updatedHistory.shift();
+      // }
       return updatedHistory;
     });
 
@@ -137,6 +140,24 @@ export default function VersionOne() {
     setHistory(!history);
   };
 
+  const handleAllCheck = (checked, key) => {
+    
+    if(checked){
+      setCheck_list((prev) => [...prev, key]);
+    } else if(!checked){
+      setCheck_list(check_list.filter((el) => el !== key));
+    }
+  }
+  const handleSingleCheck = (checked, key) => {
+    if(checked){
+      const idArray = [];
+      history_list.forEach((el)=>idArray.push(el.key));
+      setCheck_list(idArray);
+    } else if(!checked){
+      setCheck_list(check_list.filter((el) => el !== key));
+    }
+   
+  }
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
@@ -276,7 +297,7 @@ export default function VersionOne() {
                 +
               </div>
               <div
-                className="num_button s_button s_b_f"
+                className="num_button s_button"
                 onClick={handleMonitorResult}
               >
                 =
@@ -335,13 +356,32 @@ export default function VersionOne() {
           </div>
         </div>
       </div>
-      <div className={`history_wrap ${history ? "on" : ""}`}>
-        {history_list.map((item, index) => (
-          <div className="history_one" key={index}>
-            <p className="history_formula">{item.monitor_number}</p>
-            <p className="history_result">{item.monitor_result}</p>
+      <div  className={`history_wrap ${history ? "on" : ""}`}>
+        <div className="history_m_wrap">
+          <div className="history_small_wrap"  >
+            
+            {history_list.map((item, index) => (
+            <>
+            <div className="history_one" key={uuidv4()}> 
+              <input className="history_one_check" type="checkbox"  onChange={(e) => {
+                handleSingleCheck(e.target.checked, e.target.key)}}/>
+                <div className="history_one_in_box2">          
+                 <p className="history_formula">{item.monitor_number}</p>
+                  <p className="history_result">{item.monitor_result}</p>
+                </div>
+              </div>
+              </>
+            ))}
+            
           </div>
-        ))}
+          <div className="history_bottom">
+              <div className="all_check">
+                  <input className="history_all_check" type="checkbox" id="history_all_check" onChange={(e) => {
+                handleAllCheck(e.target.checked, e.target.key)}}/>
+                  <label className="history_all_check_text" for="history_all_check">전체 선택</label></div>
+              <div className="delete_btn"><FaTrashAlt /></div>
+          </div>
+        </div>
       </div>
     </div>
   );
