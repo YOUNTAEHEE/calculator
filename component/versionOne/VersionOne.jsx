@@ -21,6 +21,13 @@ export default function VersionOne() {
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
 
+    if (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) {
+      return;
+    }
+    if (monitor_number.match(/^(0+)$/) && /[+\-×÷%]/.test(value)) {
+      return;
+    }
+
     if (/[%]/.test(lastChar) && /[%]/.test(value)) {
       return;
     }
@@ -81,6 +88,10 @@ export default function VersionOne() {
   };
 
   const handleMonitorResult = (e) => {
+    if (!/[+\-×÷]/.test(monitor_number)) {
+      return;
+    }
+
     if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
       return;
     }
@@ -114,7 +125,11 @@ export default function VersionOne() {
     setHistory_list((prev) => {
       const updatedHistory = [
         ...prev,
-        { monitor_number: monitor_number, monitor_result: format_result },
+        {
+          id: uuidv4(),
+          monitor_number: monitor_number,
+          monitor_result: format_result,
+        },
       ];
 
       // if (updatedHistory.length > 8) {
@@ -140,24 +155,28 @@ export default function VersionOne() {
     setHistory(!history);
   };
 
-  const handleAllCheck = (checked, key) => {
-    
-    if(checked){
-      setCheck_list((prev) => [...prev, key]);
-    } else if(!checked){
-      setCheck_list(check_list.filter((el) => el !== key));
-    }
-  }
-  const handleSingleCheck = (checked, key) => {
-    if(checked){
+  const handleAllCheck = (checked) => {
+    console.log("checked", checked);
+    if (checked) {
       const idArray = [];
-      history_list.forEach((el)=>idArray.push(el.key));
+      history_list.forEach((el) => idArray.push(el.id));
       setCheck_list(idArray);
-    } else if(!checked){
-      setCheck_list(check_list.filter((el) => el !== key));
+    } else if (!checked) {
+      setCheck_list([]);
     }
-   
-  }
+  };
+  const handleSingleCheck = (checked, id) => {
+    if (checked) {
+      setCheck_list((prev) => [...prev, id]);
+    } else if (!checked) {
+      setCheck_list(check_list.filter((el) => el !== id));
+    }
+  };
+
+  const handleCheckDel = () => {
+    setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
+    setCheck_list([]);
+  };
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
@@ -356,30 +375,48 @@ export default function VersionOne() {
           </div>
         </div>
       </div>
-      <div  className={`history_wrap ${history ? "on" : ""}`}>
+      <div className={`history_wrap ${history ? "on" : ""}`}>
         <div className="history_m_wrap">
-          <div className="history_small_wrap"  >
-            
+          <div className="history_small_wrap">
             {history_list.map((item, index) => (
-            <>
-            <div className="history_one" key={uuidv4()}> 
-              <input className="history_one_check" type="checkbox"  onChange={(e) => {
-                handleSingleCheck(e.target.checked, e.target.key)}}/>
-                <div className="history_one_in_box2">          
-                 <p className="history_formula">{item.monitor_number}</p>
+              <div className="history_one" key={uuidv4()}>
+                <input
+                  className="history_one_check"
+                  type="checkbox"
+                  onChange={(e) => {
+                    handleSingleCheck(e.target.checked, item.id);
+                  }}
+                  checked={check_list.includes(item.id)}
+                />
+                <div className="history_one_in_box2">
+                  <p className="history_formula">{item.monitor_number}</p>
                   <p className="history_result">{item.monitor_result}</p>
                 </div>
               </div>
-              </>
             ))}
-            
           </div>
           <div className="history_bottom">
-              <div className="all_check">
-                  <input className="history_all_check" type="checkbox" id="history_all_check" onChange={(e) => {
-                handleAllCheck(e.target.checked, e.target.key)}}/>
-                  <label className="history_all_check_text" for="history_all_check">전체 선택</label></div>
-              <div className="delete_btn"><FaTrashAlt /></div>
+            <div className="all_check">
+              <input
+                className="history_all_check"
+                type="checkbox"
+                id="history_all_check"
+                onChange={(e) => handleAllCheck(e.target.checked)}
+                checked={
+                  check_list.length === history_list.length &&
+                  history_list.length > 0
+                }
+              />
+              <label
+                className="history_all_check_text"
+                htmlFor="history_all_check"
+              >
+                전체 선택
+              </label>
+            </div>
+            <div className="delete_btn" onClick={handleCheckDel}>
+              <FaTrashAlt />
+            </div>
           </div>
         </div>
       </div>
