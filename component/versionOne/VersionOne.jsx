@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import styles from "./versionOne.scss";
+// import styles from "./versionOne.scss";
+import styles from "../versionOne/versionOne.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
@@ -9,11 +10,15 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
-  const [result, setResult] = useState("0");
+  const [result, setResult] = useState("");
   const [history, setHistory] = useState(false);
   const [history_list, setHistory_list] = useState([]);
   const [parenthesis, setParenthesis] = useState(false);
   const [check_list, setCheck_list] = useState([]);
+  const [result_HEX, setResult_HEX] = useState("");
+  const [result_OCT, setResult_OCT] = useState("");
+  const [result_BIN, setResult_BIN] = useState("");
+  const [result_DEC, setResult_DEC] = useState("");
 
   const handleMonitorNumber = (e) => {
     setResult("");
@@ -85,6 +90,10 @@ export default function VersionOne() {
   const handleAllDel = (e) => {
     setMonitor_number("");
     setResult("");
+    setResult_HEX(""); //16진수
+    setResult_OCT(""); //8진수
+    setResult_BIN(""); //2진수
+    setResult_DEC(""); //10진수
   };
 
   const handleMonitorResult = (e) => {
@@ -116,12 +125,20 @@ export default function VersionOne() {
     );
 
     const result = new Function("return " + formula)();
+    const integerResult = Math.floor(result);
+
+    setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
+    setResult_OCT(integerResult.toString(8)); //8진수
+    setResult_BIN(integerResult.toString(2)); //2진수
 
     const format_result = Number.isInteger(result)
       ? result.toString()
       : parseFloat(result.toFixed(5)).toString();
 
     setResult(format_result);
+
+    setResult_DEC(format_result); //10진수
+
     setHistory_list((prev) => {
       const updatedHistory = [
         ...prev,
@@ -156,7 +173,6 @@ export default function VersionOne() {
   };
 
   const handleAllCheck = (checked) => {
-    console.log("checked", checked);
     if (checked) {
       const idArray = [];
       history_list.forEach((el) => idArray.push(el.id));
@@ -238,8 +254,20 @@ export default function VersionOne() {
     <div className={`main_content ${history ? "on" : ""}`}>
       <div className="main_box">
         <div className="r_monitor">
-          <p className="monitor_text">{monitor_number}</p>
+          <div className="monitor_top_box">
+          <p className="monitor_text monitor_top_text">{monitor_number}</p>
           <p className="monitor_result">{result}</p>
+          </div>
+          <div className="monitor_bottom_box">
+          {/* 16진수 */}
+          <p className="monitor_text"><span className=" m_s_text">HEX</span> <span className=" m_s_text m_s_text_result">{result_HEX} </span> </p>
+              {/* 10진수 */}
+         <p className="monitor_text m_s_text"><span className=" m_s_text">DEC</span> <span className=" m_s_text m_s_text_result"> {result_DEC} </span> </p>
+          {/* 8진수 */}
+          <p className="monitor_text m_s_text"><span className=" m_s_text">OCT</span> <span className=" m_s_text m_s_text_result"> {result_OCT} </span> </p>
+          {/* 2진수 */}
+          <p className="monitor_text m_s_text"><span className=" m_s_text">BIN</span> <span className=" m_s_text m_s_text_result">&nbsp; {result_BIN} </span> </p>
+          </div>
         </div>
         <div className="button_big_box">
           <div className="button_box_center" onClick={handleHistory}>
@@ -260,6 +288,7 @@ export default function VersionOne() {
                 <FaDeleteLeft />
               </div>
             </div>
+          
             {/* 연산자 추가 */}
             <div className="button_box">
               <div
