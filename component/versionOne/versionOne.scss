@@ -25,7 +25,7 @@
     .r_monitor {
       width: 100%;
       // height: 130px;
-      height: 180px;
+      height: 230px;
 
       margin-bottom: 10px;
       background-color: #cfcff1;
@@ -87,13 +87,32 @@
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        gap: 7px;
-        flex-wrap: wrap;
-        .monitor_text {
-          width: 100%;
+        margin-top: 15px;
+        .monitor_bottom_box_1 {
+          width: 60px;
+
           overflow-x: auto;
           overflow-y: hidden;
           white-space: nowrap;
+
+          .m_s_text_top {
+            font-size: 1rem;
+            font-weight: 500;
+
+            margin-bottom: 3px;
+            &:last-child {
+              margin-bottom: 0px;
+            }
+          }
+        }
+
+        .monitor_bottom_box_2 {
+          width: calc(100% - 60px);
+          overflow: hidden;
+          overflow-x: auto;
+          overflow-y: hidden;
+          white-space: nowrap;
+
           &::-webkit-scrollbar {
             height: 7px;
           }
@@ -105,17 +124,15 @@
             background: #b19ae0;
             border-radius: 5px;
           }
-          &.monitor_top_text {
-            font-size: 2.3rem;
-            text-align: right;
-            height: 45px;
-          }
-          .m_s_text {
+
+          &.m_s_text_result {
+            width: 100%;
+            margin-bottom: 3px;
             font-size: 1rem;
             font-weight: 500;
-            text-align: left;
-            &.m_s_text_result {
-              margin-left: 15px;
+
+            &:last-child {
+              margin-bottom: 0px;
             }
           }
         }

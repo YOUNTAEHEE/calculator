@@ -8,6 +8,7 @@ import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
+import { resolveObjectURL } from "buffer";
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
@@ -26,9 +27,12 @@ export default function VersionOne() {
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
 
-    if (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) {
-      return;
-    }
+    if (    
+      (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) ||
+      (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))){
+        return;
+      }
+  
     if (monitor_number.match(/^(0+)$/) && /[+\-×÷%]/.test(value)) {
       return;
     }
@@ -97,6 +101,12 @@ export default function VersionOne() {
   };
 
   const handleMonitorResult = (e) => {
+
+    if(monitor_number.match(/([÷])(0+\.?0*)$/)){
+      setResult(`0으로 나눌 수 없습니다.`);
+      return;
+    }
+
     if (!/[+\-×÷]/.test(monitor_number)) {
       return;
     }
@@ -259,14 +269,18 @@ export default function VersionOne() {
           <p className="monitor_result">{result}</p>
           </div>
           <div className="monitor_bottom_box">
-          {/* 16진수 */}
-          <p className="monitor_text"><span className=" m_s_text">HEX</span> <span className=" m_s_text m_s_text_result">{result_HEX} </span> </p>
-              {/* 10진수 */}
-         <p className="monitor_text m_s_text"><span className=" m_s_text">DEC</span> <span className=" m_s_text m_s_text_result"> {result_DEC} </span> </p>
-          {/* 8진수 */}
-          <p className="monitor_text m_s_text"><span className=" m_s_text">OCT</span> <span className=" m_s_text m_s_text_result"> {result_OCT} </span> </p>
-          {/* 2진수 */}
-          <p className="monitor_text m_s_text"><span className=" m_s_text">BIN</span> <span className=" m_s_text m_s_text_result">&nbsp; {result_BIN} </span> </p>
+            <div className="monitor_bottom_box_1 ">
+              <p className=" m_s_text_top">HEX</p>
+              <p className=" m_s_text_top">DEC</p>
+              <p className=" m_s_text_top">OCT</p>
+              <p className=" m_s_text_top">BIN</p>
+            </div>
+            <div className="monitor_bottom_box_2 ">
+              <p className=" m_s_text_result">{result_HEX}</p>
+              <p className="m_s_text_result">{result_DEC}</p> 
+              <p className="m_s_text_result">{result_OCT}</p>
+              <p className=" m_s_text_result">{result_BIN}</p>
+            </div>
           </div>
         </div>
         <div className="button_big_box">
