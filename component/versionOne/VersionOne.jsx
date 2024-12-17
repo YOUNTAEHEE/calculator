@@ -20,6 +20,7 @@ export default function VersionOne() {
   const [result_OCT, setResult_OCT] = useState("");
   const [result_BIN, setResult_BIN] = useState("");
   const [result_DEC, setResult_DEC] = useState("");
+  const [show_mobile_btn, setShow_mobile_btn] = useState(false);
 
   const handleMonitorNumber = (e) => {
     setResult("");
@@ -286,83 +287,87 @@ export default function VersionOne() {
           <div className="button_box_center" onClick={handleHistory}>
             기록
           </div>
+          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>연산자 보기</div>
+         
           <div className="button_box_wrap">
-            <div className="button_box">
-              <div
-                className="num_button s_button s_b_f_2 all_del_button"
-                onClick={handleAllDel}
-              >
-                AC
-              </div>
-              <div
-                className="num_button s_button s_b_f_2 one_del_button"
-                onClick={handleMonitorOneDel}
-              >
-                <FaDeleteLeft />
-              </div>
-            </div>
-          
-            {/* 연산자 추가 */}
-            <div className="button_box">
-              <div
-                className="num_button s_button "
-                onClick={handleMonitorNumber}
-              >
-                1/x
-              </div>
-              <div
-                className="num_button s_button "
-                onClick={handleMonitorNumber}
-              >
-                x²
-              </div>
-              <div
-                className="num_button s_button "
-                onClick={handleMonitorNumber}
-              >
-                ²√x
-              </div>
-            </div>
-            {/* 연산자 추가끝 */}
-            <div className="button_box">
-              <div
-                className="num_button s_button s_b_big"
-                onClick={handleMonitorNumber}
-              >
-                ÷
-              </div>
-              <div
-                className="num_button s_button s_b_big"
-                onClick={handleMonitorNumber}
-              >
-                ×
-              </div>
-              <div
-                className="num_button s_button s_b_big"
-                onClick={handleMonitorNumber}
-              >
-                -
-              </div>
-            </div>
-            <div className="button_box">
-              <div
-                className="num_button s_button s_b_f"
-                onClick={handleMonitorNumber}
-              >
-                %
-              </div>
-              <div
-                className="num_button s_button s_b_big"
-                onClick={handleMonitorNumber}
-              >
-                +
-              </div>
-              <div
-                className="num_button s_button"
-                onClick={handleMonitorResult}
-              >
-                =
-              </div>
+            <div className={`mobile_hidden ${show_mobile_btn === true ? 'on' : '' }`}>
+                <div className="button_box">
+                  <div
+                    className="num_button s_button s_b_f_2 all_del_button"
+                    onClick={handleAllDel}
+                  >
+                    AC
+                  </div>
+                  <div
+                    className="num_button s_button s_b_f_2 one_del_button"
+                    onClick={handleMonitorOneDel}
+                  >
+                    <FaDeleteLeft />
+                  </div>
+                </div>
+              
+                {/* 연산자 추가 */}
+                <div className="button_box">
+                  <div
+                    className="num_button s_button "
+                    onClick={handleMonitorNumber}
+                  >
+                    1/x
+                  </div>
+                  <div
+                    className="num_button s_button "
+                    onClick={handleMonitorNumber}
+                  >
+                    x²
+                  </div>
+                  <div
+                    className="num_button s_button "
+                    onClick={handleMonitorNumber}
+                  >
+                    ²√x
+                  </div>
+                </div>
+                {/* 연산자 추가끝 */}
+                <div className="button_box">
+                  <div
+                    className="num_button s_button s_b_big"
+                    onClick={handleMonitorNumber}
+                  >
+                    ÷
+                  </div>
+                  <div
+                    className="num_button s_button s_b_big"
+                    onClick={handleMonitorNumber}
+                  >
+                    ×
+                  </div>
+                  <div
+                    className="num_button s_button s_b_big"
+                    onClick={handleMonitorNumber}
+                  >
+                    -
+                  </div>
+                </div>
+                <div className="button_box">
+                  <div
+                    className="num_button s_button s_b_f"
+                    onClick={handleMonitorNumber}
+                  >
+                    %
+                  </div>
+                  <div
+                    className="num_button s_button s_b_big"
+                    onClick={handleMonitorNumber}
+                  >
+                    +
+                  </div>
+                  <div
+                    className="num_button s_button"
+                    onClick={handleMonitorResult}
+                  >
+                    =
+                  </div>
+                </div>
             </div>
             <div className="button_box">
               <div className="num_button" onClick={handleMonitorNumber}>
