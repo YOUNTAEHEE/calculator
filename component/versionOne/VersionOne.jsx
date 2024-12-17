@@ -33,7 +33,7 @@ export default function VersionOne() {
         return;
       }
   
-    if (monitor_number.match(/^(0+)$/) && /[+\-×÷%]/.test(value)) {
+    if (monitor_number.match(/(0+)$/) && /[+\-×÷%]/.test(value)) {
       return;
     }
 
@@ -140,14 +140,13 @@ export default function VersionOne() {
     setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
     setResult_OCT(integerResult.toString(8)); //8진수
     setResult_BIN(integerResult.toString(2)); //2진수
+    setResult_DEC(integerResult.toString()); //10진수
 
     const format_result = Number.isInteger(result)
       ? result.toString()
       : parseFloat(result.toFixed(5)).toString();
 
     setResult(format_result);
-
-    setResult_DEC(format_result); //10진수
 
     setHistory_list((prev) => {
       const updatedHistory = [

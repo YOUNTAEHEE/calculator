@@ -1,6 +1,7 @@
 .main_content {
   min-width: 370px;
   min-height: 780px;
+  // height: 100%;
   height: auto;
   width: 370px;
   margin: 0 auto;
@@ -125,7 +126,7 @@
             border-radius: 5px;
           }
 
-          &.m_s_text_result {
+          .m_s_text_result {
             width: 100%;
             margin-bottom: 3px;
             font-size: 1rem;
@@ -229,7 +230,7 @@
     }
     .history_m_wrap {
       width: 338px;
-      min-height: 780px;
+      // min-height: 780px;
       height: 100%;
       display: flex;
       justify-content: center;
@@ -242,7 +243,8 @@
       .history_small_wrap {
         width: 100%;
         height: calc(100% - 45px);
-        min-height: 735px;
+        min-height: 810px;
+        max-height: 810px;
         border-radius: 5px;
         background-color: #f6f6ff;
         overflow: hidden;
