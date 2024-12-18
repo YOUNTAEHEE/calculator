@@ -28,15 +28,6 @@ export default function VersionOne() {
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
 
-    if (/[)]/.test(lastChar) && /\d+/.test(value)) {
-      return;
-    }
-    if (/[%]/.test(lastChar) && /\d+/.test(value)) {
-      return;
-    }
-    if (/[(]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
-      return;
-    }
     if (    
       (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) ||
       (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))){
@@ -160,17 +151,20 @@ export default function VersionOne() {
 
     setHistory_list((prev) => {
       const updatedHistory = [
+        ...prev,
         {
           id: uuidv4(),
           monitor_number: monitor_number,
           monitor_result: format_result,
-        }, 
-        ...prev      
+        },
       ];
 
+      // if (updatedHistory.length > 8) {
+      //   updatedHistory.shift();
+      // }
       return updatedHistory;
     });
-    
+
     setMonitor_number("");
   };
 
@@ -432,7 +426,7 @@ export default function VersionOne() {
         <div className="history_m_wrap">
           <div className="history_small_wrap">
             {history_list.map((item, index) => (
-              <div className="history_one" key={item.id}>
+              <div className="history_one" key={uuidv4()}>
                 <input
                   className="history_one_check"
                   type="checkbox"
