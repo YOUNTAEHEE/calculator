@@ -9,6 +9,8 @@ import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
+import {addCalculator, getCalculator}   from "../../lib/actions";
+//mongoDB
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
@@ -28,6 +30,15 @@ export default function VersionOne() {
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
 
+    if (/[)]/.test(lastChar) && /\d+/.test(value)) {
+      return;
+    }
+    if (/[%]/.test(lastChar) && /\d+/.test(value)) {
+      return;
+    }
+    if (/[(]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
+      return;
+    }
     if (    
       (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) ||
       (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))){
@@ -101,8 +112,8 @@ export default function VersionOne() {
     setResult_DEC(""); //10진수
   };
 
-  const handleMonitorResult = (e) => {
-
+  const handleMonitorResult = async(e) => {
+try{
     if(monitor_number.match(/([÷])(0+\.?0*)$/)){
       setResult(`0으로 나눌 수 없습니다.`);
       return;
@@ -149,23 +160,32 @@ export default function VersionOne() {
 
     setResult(format_result);
 
+    const newId = uuidv4();
+
+    const formData = new FormData();
+    formData.append('id', newId);
+    formData.append("monitor_number", monitor_number);
+    formData.append("monitor_result", format_result);
+
+    await addCalculator(formData);
+
     setHistory_list((prev) => {
       const updatedHistory = [
-        ...prev,
         {
-          id: uuidv4(),
+          id: newId,
           monitor_number: monitor_number,
           monitor_result: format_result,
-        },
+        }, 
+        ...prev      
       ];
 
-      // if (updatedHistory.length > 8) {
-      //   updatedHistory.shift();
-      // }
       return updatedHistory;
     });
-
+    
     setMonitor_number("");
+  }catch(error){
+    console.log(error);
+  }
   };
 
   const handleParenthesis = (e) => {
@@ -203,6 +223,15 @@ export default function VersionOne() {
     setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
     setCheck_list([]);
   };
+
+  useEffect(() => {
+    const loadHostory = async()=>{
+      const viewHistory = await getCalculator();
+      setHistory_list(viewHistory || []);
+    }
+    loadHostory();
+  }, []);
+
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
@@ -426,7 +455,7 @@ export default function VersionOne() {
         <div className="history_m_wrap">
           <div className="history_small_wrap">
             {history_list.map((item, index) => (
-              <div className="history_one" key={uuidv4()}>
+              <div className="history_one" key={item.id}>
                 <input
                   className="history_one_check"
                   type="checkbox"

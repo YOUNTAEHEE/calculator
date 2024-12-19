@@ -5,7 +5,7 @@ import styles from "./versionTwo.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
-//반응형일때 달라지게
+
 // 버전2 윈도우 계산기 처럼 화면 출력 방식을 바꾸기
 export default function VersionOne() {
   const [monitor_number, setMonitor_number] = useState("");
