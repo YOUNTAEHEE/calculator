@@ -53,7 +53,7 @@ export default function VersionOne() {
     if (/[+\-×÷]/.test(lastChar) && value === "1/x") {
       return;
     }
-    if (monitor_number === "" && /[+\-×÷%]/.test(value)) {
+    if (monitor_number === "" && /[+×÷%]/.test(value)) {
       return;
     }
 
@@ -217,6 +217,16 @@ export default function VersionOne() {
   }, [monitor_number]);
 
   useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 500) { 
+        setShow_mobile_btn(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     const handleKeyPress = (e) => {
       switch (e.key) {
         case "/":
@@ -293,7 +303,7 @@ export default function VersionOne() {
           <div className="button_box_center" onClick={handleHistory}>
             기록
           </div>
-          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>계산기 기능 키 펼치기</div>
+          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>계산기 기능 키 {show_mobile_btn ? '숨기기' : '펼치기'}</div>
          
           <div className="button_box_wrap">
             <div className={`mobile_hidden ${show_mobile_btn === true ? 'on' : '' }`}>
