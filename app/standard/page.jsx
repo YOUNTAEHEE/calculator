@@ -2,26 +2,27 @@
 
 import Image from "next/image";
 // import styles from "./versionOne.scss";
-import styles from "../versionOne/versionOne.scss";
+import styles from "./standard.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
-export default function VersionOne() {
+import {addStandard, deleteStandard, getStandard}   from "../../lib/actions";
+export default function Standard() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
   const [history, setHistory] = useState(false);
   const [history_list, setHistory_list] = useState([]);
   const [parenthesis, setParenthesis] = useState(false);
   const [check_list, setCheck_list] = useState([]);
-  const [result_HEX, setResult_HEX] = useState("");
-  const [result_OCT, setResult_OCT] = useState("");
-  const [result_BIN, setResult_BIN] = useState("");
-  const [result_DEC, setResult_DEC] = useState("");
+  // const [result_HEX, setResult_HEX] = useState("");
+  // const [result_OCT, setResult_OCT] = useState("");
+  // const [result_BIN, setResult_BIN] = useState("");
+  // const [result_DEC, setResult_DEC] = useState("");
   const [show_mobile_btn, setShow_mobile_btn] = useState(false);
-
+  
   const handleMonitorNumber = (e) => {
     setResult("");
     const value = e.target.textContent;
@@ -104,75 +105,87 @@ export default function VersionOne() {
   const handleAllDel = (e) => {
     setMonitor_number("");
     setResult("");
-    setResult_HEX(""); //16진수
-    setResult_OCT(""); //8진수
-    setResult_BIN(""); //2진수
-    setResult_DEC(""); //10진수
+    // setResult_HEX(""); //16진수
+    // setResult_OCT(""); //8진수
+    // setResult_BIN(""); //2진수
+    // setResult_DEC(""); //10진수
   };
 
-  const handleMonitorResult = (e) => {
-
-    if(monitor_number.match(/([÷])(0+\.?0*)$/)){
-      setResult(`0으로 나눌 수 없습니다.`);
-      return;
-    }
-
-    if (!/[+\-×÷]/.test(monitor_number)) {
-      return;
-    }
-
-    if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
-      return;
-    }
-
-    let formula = monitor_number;
-
-    formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
-
-    formula = formula.replace(
-      /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
-      (match, number1, operator, number2) => {
-        const op = operator === "×" || operator === "*" ? "*" : "/";
-        return `(${number1} ${op} ${number2 / 100})`;
+  const handleMonitorResult = async(e) => {
+    try{
+      if(monitor_number.match(/([÷])(0+\.?0*)$/)){
+        setResult(`0으로 나눌 수 없습니다.`);
+        return;
       }
-    );
-
-    formula = formula.replace(
-      /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
-      (match, number1, operator, number2) => {
-        return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+  
+      if (!/[+\-×÷]/.test(monitor_number)) {
+        return;
       }
-    );
-
-    const result = new Function("return " + formula)();
-    const integerResult = Math.floor(result);
-
-    setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
-    setResult_OCT(integerResult.toString(8)); //8진수
-    setResult_BIN(integerResult.toString(2)); //2진수
-    setResult_DEC(integerResult.toString()); //10진수
-
-    const format_result = Number.isInteger(result)
-      ? result.toString()
-      : parseFloat(result.toFixed(5)).toString();
-
-    setResult(format_result);
-
-    setHistory_list((prev) => {
-      const updatedHistory = [
-        {
-          id: uuidv4(),
-          monitor_number: monitor_number,
-          monitor_result: format_result,
-        }, 
-        ...prev      
-      ];
-
-      return updatedHistory;
-    });
-    
-    setMonitor_number("");
-  };
+  
+      if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+        return;
+      }
+  
+      let formula = monitor_number;
+  
+      formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
+  
+      formula = formula.replace(
+        /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+        (match, number1, operator, number2) => {
+          const op = operator === "×" || operator === "*" ? "*" : "/";
+          return `(${number1} ${op} ${number2 / 100})`;
+        }
+      );
+  
+      formula = formula.replace(
+        /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+        (match, number1, operator, number2) => {
+          return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+        }
+      );
+  
+      const result = new Function("return " + formula)();
+      // const integerResult = Math.floor(result);
+  
+      // setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
+      // setResult_OCT(integerResult.toString(8)); //8진수
+      // setResult_BIN(integerResult.toString(2)); //2진수
+      // setResult_DEC(integerResult.toString()); //10진수
+  
+      const format_result = Number.isInteger(result)
+        ? result.toString()
+        : parseFloat(result.toFixed(5)).toString();
+  
+      setResult(format_result);
+  
+      const newId = uuidv4();
+  
+      const formData = new FormData();
+      formData.append('id', newId);
+      formData.append("monitor_number", monitor_number);
+      formData.append("monitor_result", format_result);
+  
+      await addStandard(formData);
+  
+      setHistory_list((prev) => {
+        const updatedHistory = [
+          {
+            id: newId,
+            monitor_number: monitor_number,
+            monitor_result: format_result,
+          }, 
+          ...prev      
+        ];
+  
+        return updatedHistory;
+      });
+      
+      setMonitor_number("");
+    }catch(error){
+      console.log(error);
+    }
+    };
 
   const handleParenthesis = (e) => {
     if (!parenthesis) {
@@ -205,10 +218,23 @@ export default function VersionOne() {
     }
   };
 
-  const handleCheckDel = () => {
+  const handleCheckDel = async() => {
+    try{
+    const formData = new FormData();
+
+    check_list.forEach((el)=>{
+      formData.append('id', el);
+    })
+    
+    await deleteStandard(formData);
     setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
     setCheck_list([]);
+  }catch(error){
+      console.log(error);
+    }
   };
+
+
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
@@ -276,7 +302,17 @@ export default function VersionOne() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
+
+  useEffect(() => {
+    const loadHistory = async()=>{
+      const viewHistory = await getStandard();
+      setHistory_list(viewHistory || []);
+    }
+    loadHistory();
+  }, []);
+
   return (
+    
     <div className={`main_content ${history ? "on" : ""}`}>
       <div className="main_box">
         <div className="r_monitor">
@@ -284,7 +320,7 @@ export default function VersionOne() {
           <p className="monitor_text monitor_top_text">{monitor_number}</p>
           <p className="monitor_result">{result}</p>
           </div>
-          <div className="monitor_bottom_box">
+          {/* <div className="monitor_bottom_box">
             <div className="monitor_bottom_box_1 ">
               <p className=" m_s_text_top">HEX</p>
               <p className=" m_s_text_top">DEC</p>
@@ -297,7 +333,7 @@ export default function VersionOne() {
               <p className="m_s_text_result">{result_OCT}</p>
               <p className=" m_s_text_result">{result_BIN}</p>
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="button_big_box">
           <div className="button_box_center" onClick={handleHistory}>

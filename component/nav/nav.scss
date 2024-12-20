@@ -1,0 +1,17 @@
+.c_nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 25px;
+  gap: 25px;
+
+  .c_nav_title {
+    color: #cfcff1;
+    font-size: 1.3rem;
+    font-weight: 500;
+    cursor: pointer;
+    &.on {
+      color: #7272ad;
+    }
+  }
+}

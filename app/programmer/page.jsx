@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 // import styles from "./versionOne.scss";
-import styles from "../versionOne/versionOne.scss";
+import styles from "./programmer.scss";
 import { useState, useEffect } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
@@ -10,8 +10,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import {addCalculator, getCalculator}   from "../../lib/actions";
-//mongoDB
-export default function VersionOne() {
+export default function Programmer() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
   const [history, setHistory] = useState(false);
@@ -23,7 +22,8 @@ export default function VersionOne() {
   const [result_BIN, setResult_BIN] = useState("");
   const [result_DEC, setResult_DEC] = useState("");
   const [show_mobile_btn, setShow_mobile_btn] = useState(false);
-
+  const [choice_nav, setChoice_nav] = useState("standard");
+  
   const handleMonitorNumber = (e) => {
     setResult("");
     const value = e.target.textContent;
@@ -55,7 +55,7 @@ export default function VersionOne() {
     if (/[+\-×÷]/.test(lastChar) && value === "1/x") {
       return;
     }
-    if (monitor_number === "" && /[+\-×÷%]/.test(value)) {
+    if (monitor_number === "" && /[+×÷%]/.test(value)) {
       return;
     }
 
@@ -113,80 +113,80 @@ export default function VersionOne() {
   };
 
   const handleMonitorResult = async(e) => {
-  try{
-    if(monitor_number.match(/([÷])(0+\.?0*)$/)){
-      setResult(`0으로 나눌 수 없습니다.`);
-      return;
-    }
-
-    if (!/[+\-×÷]/.test(monitor_number)) {
-      return;
-    }
-
-    if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
-      return;
-    }
-
-    let formula = monitor_number;
-
-    formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
-
-    formula = formula.replace(
-      /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
-      (match, number1, operator, number2) => {
-        const op = operator === "×" || operator === "*" ? "*" : "/";
-        return `(${number1} ${op} ${number2 / 100})`;
+    try{
+      if(monitor_number.match(/([÷])(0+\.?0*)$/)){
+        setResult(`0으로 나눌 수 없습니다.`);
+        return;
       }
-    );
-
-    formula = formula.replace(
-      /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
-      (match, number1, operator, number2) => {
-        return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+  
+      if (!/[+\-×÷]/.test(monitor_number)) {
+        return;
       }
-    );
-
-    const result = new Function("return " + formula)();
-    const integerResult = Math.floor(result);
-
-    setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
-    setResult_OCT(integerResult.toString(8)); //8진수
-    setResult_BIN(integerResult.toString(2)); //2진수
-    setResult_DEC(integerResult.toString()); //10진수
-
-    const format_result = Number.isInteger(result)
-      ? result.toString()
-      : parseFloat(result.toFixed(5)).toString();
-
-    setResult(format_result);
-
-    const newId = uuidv4();
-
-    const formData = new FormData();
-    formData.append('id', newId);
-    formData.append("monitor_number", monitor_number);
-    formData.append("monitor_result", format_result);
-
-    await addCalculator(formData);
-
-    setHistory_list((prev) => {
-      const updatedHistory = [
-        {
-          id: newId,
-          monitor_number: monitor_number,
-          monitor_result: format_result,
-        }, 
-        ...prev      
-      ];
-
-      return updatedHistory;
-    });
-    
-    setMonitor_number("");
-  }catch(error){
-    console.log(error);
-  }
-  };
+  
+      if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+        return;
+      }
+  
+      let formula = monitor_number;
+  
+      formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
+  
+      formula = formula.replace(
+        /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+        (match, number1, operator, number2) => {
+          const op = operator === "×" || operator === "*" ? "*" : "/";
+          return `(${number1} ${op} ${number2 / 100})`;
+        }
+      );
+  
+      formula = formula.replace(
+        /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+        (match, number1, operator, number2) => {
+          return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+        }
+      );
+  
+      const result = new Function("return " + formula)();
+      const integerResult = Math.floor(result);
+  
+      setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
+      setResult_OCT(integerResult.toString(8)); //8진수
+      setResult_BIN(integerResult.toString(2)); //2진수
+      setResult_DEC(integerResult.toString()); //10진수
+  
+      const format_result = Number.isInteger(result)
+        ? result.toString()
+        : parseFloat(result.toFixed(5)).toString();
+  
+      setResult(format_result);
+  
+      const newId = uuidv4();
+  
+      const formData = new FormData();
+      formData.append('id', newId);
+      formData.append("monitor_number", monitor_number);
+      formData.append("monitor_result", format_result);
+  
+      await addCalculator(formData);
+  
+      setHistory_list((prev) => {
+        const updatedHistory = [
+          {
+            id: newId,
+            monitor_number: monitor_number,
+            monitor_result: format_result,
+          }, 
+          ...prev      
+        ];
+  
+        return updatedHistory;
+      });
+      
+      setMonitor_number("");
+    }catch(error){
+      console.log(error);
+    }
+    };
 
   const handleParenthesis = (e) => {
     if (!parenthesis) {
@@ -223,21 +223,22 @@ export default function VersionOne() {
     setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
     setCheck_list([]);
   };
-
-  useEffect(() => {
-    const loadHistory = async()=>{
-      const viewHistory = await getCalculator();
-      setHistory_list(viewHistory || []);
-    }
-    loadHistory();
-  }, []);
-
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
       element.scrollLeft = element.scrollWidth;
     }
   }, [monitor_number]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 500) { 
+        setShow_mobile_btn(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -289,7 +290,17 @@ export default function VersionOne() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
+
+  useEffect(() => {
+    const loadHistory = async()=>{
+      const viewHistory = await getCalculator();
+      setHistory_list(viewHistory || []);
+    }
+    loadHistory();
+  }, []);
+
   return (
+   
     <div className={`main_content ${history ? "on" : ""}`}>
       <div className="main_box">
         <div className="r_monitor">
@@ -316,7 +327,7 @@ export default function VersionOne() {
           <div className="button_box_center" onClick={handleHistory}>
             기록
           </div>
-          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>계산기 기능 키 펼치기</div>
+          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>계산기 기능 키 {show_mobile_btn ? '숨기기' : '펼치기'}</div>
          
           <div className="button_box_wrap">
             <div className={`mobile_hidden ${show_mobile_btn === true ? 'on' : '' }`}>

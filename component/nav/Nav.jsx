@@ -1,12 +1,9 @@
 'use client';
-import Standard from "./standard/page";
-import Programmer from "./programmer/page";
+
 import { useRouter } from 'next/navigation';
 import { useState } from "react";
-// import VersionTwo from "../component/versionTwo/VersionTwo";
-import styles from "./home.scss";
 
-export default function Home() {
+export default function Nav() {
   const [choice_nav, setChoice_nav] = useState("standard");
   const router = useRouter();
 
@@ -20,8 +17,9 @@ export default function Home() {
   }
 
   return (
-    <div >
-     <Standard />
+     <div className="c_nav">
+      <div className={`c_nav_title ${choice_nav === "standard" ? "on" : ""}`} onClick={()=>handleNavClick("standard")}>표준 계산기</div>
+      <div className={`c_nav_title ${choice_nav === "programmer" ? "on" :""}`} onClick={()=>handleNavClick("programmer")} >프로그래머</div>
     </div>
   );
 }
