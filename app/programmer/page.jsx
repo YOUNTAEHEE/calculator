@@ -9,7 +9,8 @@ import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
-import {addCalculator, getCalculator}   from "../../lib/actions";
+import { useSearchParams } from "next/navigation";
+// import {addCalculator, getCalculator}   from "../../lib/actions";
 export default function Programmer() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
@@ -22,8 +23,10 @@ export default function Programmer() {
   const [result_BIN, setResult_BIN] = useState("");
   const [result_DEC, setResult_DEC] = useState("");
   const [show_mobile_btn, setShow_mobile_btn] = useState(false);
-  const [choice_nav, setChoice_nav] = useState("standard");
-  
+
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+
   const handleMonitorNumber = (e) => {
     setResult("");
     const value = e.target.textContent;
@@ -39,12 +42,13 @@ export default function Programmer() {
     if (/[(]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
       return;
     }
-    if (    
+    if (
       (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) ||
-      (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))){
-        return;
-      }
-  
+      (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))
+    ) {
+      return;
+    }
+
     if (monitor_number.match(/(0+)$/) && /[+\-×÷%]/.test(value)) {
       return;
     }
@@ -95,6 +99,39 @@ export default function Programmer() {
         );
         return;
       }
+
+      let min, max;
+
+      switch (mode) {
+        case "word":
+          min = -32768;
+          max = 32767;
+          break;
+        case "dword":
+          min = -2147483648;
+          max = 2147483647;
+          break;
+        case "qword":
+          min = -9223372036854775808n;
+          max = 9223372036854775807n;
+          break;
+        default:
+          return;
+      }
+
+      if (/\d/.test(value)) {
+        const newValue = monitor_number + value;
+        const numericParts = newValue.split(/[+\-×÷]/);
+        const lastNumber = numericParts[numericParts.length - 1];
+        if (lastNumber) {
+          const num =
+            mode === "qword" ? BigInt(lastNumber) : Number(lastNumber);
+          if (num < min || num > max) {
+            return;
+          }
+        }
+      }
+
       setMonitor_number((prev) => prev + value);
     }
   };
@@ -112,25 +149,28 @@ export default function Programmer() {
     setResult_DEC(""); //10진수
   };
 
-  const handleMonitorResult = async(e) => {
-    try{
-      if(monitor_number.match(/([÷])(0+\.?0*)$/)){
+  const handleMonitorResult = async (e) => {
+    try {
+      if (monitor_number.match(/([÷])(0+\.?0*)$/)) {
         setResult(`0으로 나눌 수 없습니다.`);
         return;
       }
-  
+
       if (!/[+\-×÷]/.test(monitor_number)) {
         return;
       }
-  
+
       if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
         return;
       }
-  
+
       let formula = monitor_number;
-  
-      formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
-  
+
+      formula = formula
+        .replace(/÷/g, "/")
+        .replace(/×/g, "*")
+        .replace(/−/g, "-");
+
       formula = formula.replace(
         /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
         (match, number1, operator, number2) => {
@@ -138,55 +178,128 @@ export default function Programmer() {
           return `(${number1} ${op} ${number2 / 100})`;
         }
       );
-  
+
       formula = formula.replace(
         /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
         (match, number1, operator, number2) => {
           return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
         }
       );
-  
+
       const result = new Function("return " + formula)();
-      const integerResult = Math.floor(result);
-  
-      setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
-      setResult_OCT(integerResult.toString(8)); //8진수
-      setResult_BIN(integerResult.toString(2)); //2진수
-      setResult_DEC(integerResult.toString()); //10진수
-  
-      const format_result = Number.isInteger(result)
-        ? result.toString()
-        : parseFloat(result.toFixed(5)).toString();
-  
-      setResult(format_result);
-  
+      let integerResult = Math.floor(result);
+
+      switch (mode) {
+        case "word": {
+          // 16비트 범위로 제한 (-32768 ~ 32767)
+          const mod = 65536; // 2^16
+          integerResult = ((integerResult % mod) + mod) % mod;
+          if (integerResult >= 32768) {
+            integerResult -= 65536;
+          }
+          const absReslut = Math.abs(integerResult);
+          setResult_HEX(absReslut.toString(16).toUpperCase()); //16진수
+          setResult_OCT(absReslut.toString(8)); //8진수
+          setResult_BIN(absReslut.toString(2)); //2진수
+          setResult_DEC(integerResult.toString()); //10진수
+
+          setResult(integerResult.toString());
+          break;
+        }
+        case "dword": {
+          // 32비트 범위로 제한 (-2147483648 ~ 2147483647)
+          const mod = 4294967296; // 2^32
+          integerResult = ((integerResult % mod) + mod) % mod;
+          if (integerResult >= 2147483648) {
+            integerResult -= 4294967296;
+          }
+          const absReslut = Math.abs(integerResult);
+          setResult_HEX(absReslut.toString(16).toUpperCase()); //16진수
+          setResult_OCT(absReslut.toString(8)); //8진수
+          setResult_BIN(absReslut.toString(2)); //2진수
+          setResult_DEC(integerResult.toString()); //10진수
+
+          setResult(integerResult.toString());
+          break;
+        }
+        case "qword": {
+          try {
+            // 문자열로 된 수식을 BigInt로 계산하기 위한 처리
+            const cleanFormula = formula.replace(/×/g, "*").replace(/÷/g, "/");
+
+            // 수식의 각 숫자를 BigInt로 변환하여 계산
+            const result = eval(
+              cleanFormula
+                .split(/([+\-*\/])/)
+                .map((part) => {
+                  if (/^\d+$/.test(part)) {
+                    return `BigInt("${part}")`;
+                  }
+                  return part;
+                })
+                .join("")
+            );
+
+            // 64비트 범위로 제한 (-2^63 ~ 2^63-1)
+            const mod = BigInt("18446744073709551616"); // 2^64
+            let integerResult = ((result % mod) + mod) % mod;
+
+            if (integerResult >= BigInt("9223372036854775808")) {
+              integerResult -= mod;
+            }
+
+            setResult(integerResult.toString());
+            setResult_HEX(integerResult.toString(16).toUpperCase());
+            setResult_OCT(integerResult.toString(8));
+            setResult_BIN(integerResult.toString(2));
+            setResult_DEC(integerResult.toString());
+          } catch (error) {
+            console.error("QWORD calculation error:", error);
+            setResult("Error: Number too large");
+          }
+          break;
+        }
+      }
+
+      // const absReslut = Math.abs(integerResult);
+      // setResult_HEX(absReslut.toString(16).toUpperCase()); //16진수
+      // setResult_OCT(absReslut.toString(8)); //8진수
+      // setResult_BIN(absReslut.toString(2)); //2진수
+      // setResult_DEC(integerResult.toString()); //10진수
+
+      // const format_result = Number.isInteger(result)
+      //   ? result.toString()
+      //   : parseFloat(result.toFixed(5)).toString();
+
+      // setResult(integerResult.toString());
+
       const newId = uuidv4();
-  
+
       const formData = new FormData();
-      formData.append('id', newId);
+      formData.append("id", newId);
       formData.append("monitor_number", monitor_number);
       formData.append("monitor_result", format_result);
-  
-      await addCalculator(formData);
-  
+
+      // await addCalculator(formData);
+
       setHistory_list((prev) => {
         const updatedHistory = [
           {
             id: newId,
             monitor_number: monitor_number,
             monitor_result: format_result,
-          }, 
-          ...prev      
+          },
+          ...prev,
         ];
-  
+
         return updatedHistory;
       });
-      
+
       setMonitor_number("");
-    }catch(error){
+    } catch (error) {
       console.log(error);
     }
-    };
+  };
 
   const handleParenthesis = (e) => {
     if (!parenthesis) {
@@ -232,12 +345,12 @@ export default function Programmer() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 500) { 
+      if (window.innerWidth > 500) {
         setShow_mobile_btn(false);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -290,47 +403,55 @@ export default function Programmer() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
-
-  useEffect(() => {
-    const loadHistory = async()=>{
-      const viewHistory = await getCalculator();
-      setHistory_list(viewHistory || []);
-    }
-    loadHistory();
-  }, []);
+  // useEffect(() => {
+  //   const loadHistory = async()=>{
+  //     const viewHistory = await getCalculator();
+  //     setHistory_list(viewHistory || []);
+  //   }
+  //   loadHistory();
+  // }, []);
 
   return (
-   
-    <div className={`main_content ${history ? "on" : ""}`}>
-      <div className="main_box">
-        <div className="r_monitor">
-          <div className="monitor_top_box">
-          <p className="monitor_text monitor_top_text">{monitor_number}</p>
-          <p className="monitor_result">{result}</p>
-          </div>
-          <div className="monitor_bottom_box">
-            <div className="monitor_bottom_box_1 ">
-              <p className=" m_s_text_top">HEX</p>
-              <p className=" m_s_text_top">DEC</p>
-              <p className=" m_s_text_top">OCT</p>
-              <p className=" m_s_text_top">BIN</p>
+    <div className="programmer_calculator">
+      <div className={`main_content ${history ? "on" : ""}`}>
+        <div className="main_box">
+          <div className="r_monitor">
+            <div className="monitor_top_box">
+              <p className="monitor_text monitor_top_text">{monitor_number}</p>
+              <p className="monitor_result">{result}</p>
             </div>
-            <div className="monitor_bottom_box_2 ">
-              <p className=" m_s_text_result">{result_HEX}</p>
-              <p className="m_s_text_result">{result_DEC}</p> 
-              <p className="m_s_text_result">{result_OCT}</p>
-              <p className=" m_s_text_result">{result_BIN}</p>
+            <div className="monitor_bottom_box">
+              <div className="monitor_bottom_box_1 ">
+                <p className=" m_s_text_top">HEX</p>
+                <p className=" m_s_text_top">DEC</p>
+                <p className=" m_s_text_top">OCT</p>
+                <p className=" m_s_text_top">BIN</p>
+              </div>
+              <div className="monitor_bottom_box_2 ">
+                <p className=" m_s_text_result">{result_HEX}</p>
+                <p className="m_s_text_result">{result_DEC}</p>
+                <p className="m_s_text_result">{result_OCT}</p>
+                <p className=" m_s_text_result">{result_BIN}</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="button_big_box">
-          <div className="button_box_center" onClick={handleHistory}>
-            기록
-          </div>
-          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>계산기 기능 키 {show_mobile_btn ? '숨기기' : '펼치기'}</div>
-         
-          <div className="button_box_wrap">
-            <div className={`mobile_hidden ${show_mobile_btn === true ? 'on' : '' }`}>
+          <div className="button_big_box">
+            <div className="button_box_center" onClick={handleHistory}>
+              기록
+            </div>
+            <div
+              className="button_box_mobile_show_btn "
+              onClick={() => setShow_mobile_btn(!show_mobile_btn)}
+            >
+              계산기 기능 키 {show_mobile_btn ? "숨기기" : "펼치기"}
+            </div>
+
+            <div className="button_box_wrap">
+              <div
+                className={`mobile_hidden ${
+                  show_mobile_btn === true ? "on" : ""
+                }`}
+              >
                 <div className="button_box">
                   <div
                     className="num_button s_button s_b_f_2 all_del_button"
@@ -345,26 +466,26 @@ export default function Programmer() {
                     <FaDeleteLeft />
                   </div>
                 </div>
-              
+
                 {/* 연산자 추가 */}
                 <div className="button_box">
                   <div
                     className="num_button s_button "
                     onClick={handleMonitorNumber}
                   >
-                    1/x
+                    &#x226A;
                   </div>
                   <div
                     className="num_button s_button "
                     onClick={handleMonitorNumber}
                   >
-                    x²
+                    &#x226B;
                   </div>
                   <div
-                    className="num_button s_button "
-                    onClick={handleMonitorNumber}
+                    className="num_button s_button s_b_f"
+                    onClick={handleParenthesis}
                   >
-                    ²√x
+                    ()
                   </div>
                 </div>
                 {/* 연산자 추가끝 */}
@@ -408,101 +529,133 @@ export default function Programmer() {
                     =
                   </div>
                 </div>
-            </div>
-            <div className="button_box">
-              <div className="num_button" onClick={handleMonitorNumber}>
-                7
               </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                8
+              <div className="button_box">
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  7
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  8
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  9
+                </div>
               </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                9
+              <div className="button_box">
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  4
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  5
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  6
+                </div>
               </div>
-            </div>
-            <div className="button_box">
-              <div className="num_button" onClick={handleMonitorNumber}>
-                4
+              <div className="button_box">
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  1
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  2
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  3
+                </div>
               </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                5
+              <div className="button_box">
+                <div className="num_button " onClick={handleMonitorNumber}>
+                  0
+                </div>
+                <div className="none_btn"></div>
+                <div className=" none_btn"></div>
               </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                6
+              <div className="button_box">
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  A
+                </div>
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  B
+                </div>
+
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  C
+                </div>
               </div>
-            </div>
-            <div className="button_box">
-              <div className="num_button" onClick={handleMonitorNumber}>
-                1
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                2
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                3
-              </div>
-            </div>
-            <div className="button_box">
-              <div
-                className="num_button s_button s_b_f"
-                onClick={handleParenthesis}
-              >
-                ()
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                0
-              </div>
-              <div
-                className="num_button s_button s_b_big"
-                onClick={handleMonitorNumber}
-              >
-                .
+              <div className="button_box">
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  D
+                </div>
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  E
+                </div>
+                <div
+                  className="num_button s_button "
+                  onClick={handleMonitorNumber}
+                >
+                  F
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className={`history_wrap ${history ? "on" : ""}`}>
-        <div className="history_m_wrap">
-          <div className="history_small_wrap">
-            {history_list.map((item, index) => (
-              <div className="history_one" key={item.id}>
-                <input
-                  className="history_one_check"
-                  type="checkbox"
-                  onChange={(e) => {
-                    handleSingleCheck(e.target.checked, item.id);
-                  }}
-                  checked={check_list.includes(item.id)}
-                />
-                <div className="history_one_in_box2">
-                  <p className="history_formula">{item.monitor_number}</p>
-                  <p className="history_result">{item.monitor_result}</p>
+        <div className={`history_wrap ${history ? "on" : ""}`}>
+          <div className="history_m_wrap">
+            <div className="history_small_wrap">
+              {history_list.map((item, index) => (
+                <div className="history_one" key={item.id}>
+                  <input
+                    className="history_one_check"
+                    type="checkbox"
+                    onChange={(e) => {
+                      handleSingleCheck(e.target.checked, item.id);
+                    }}
+                    checked={check_list.includes(item.id)}
+                  />
+                  <div className="history_one_in_box2">
+                    <p className="history_formula">{item.monitor_number}</p>
+                    <p className="history_result">{item.monitor_result}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="history_bottom">
-            <div className="all_check">
-              <input
-                className="history_all_check"
-                type="checkbox"
-                id="history_all_check"
-                onChange={(e) => handleAllCheck(e.target.checked)}
-                checked={
-                  check_list.length === history_list.length &&
-                  history_list.length > 0
-                }
-              />
-              <label
-                className="history_all_check_text"
-                htmlFor="history_all_check"
-              >
-                전체 선택
-              </label>
+              ))}
             </div>
-            <div className="delete_btn" onClick={handleCheckDel}>
-              <FaTrashAlt />
+            <div className="history_bottom">
+              <div className="all_check">
+                <input
+                  className="history_all_check"
+                  type="checkbox"
+                  id="history_all_check"
+                  onChange={(e) => handleAllCheck(e.target.checked)}
+                  checked={
+                    check_list.length === history_list.length &&
+                    history_list.length > 0
+                  }
+                />
+                <label
+                  className="history_all_check_text"
+                  htmlFor="history_all_check"
+                >
+                  전체 선택
+                </label>
+              </div>
+              <div className="delete_btn" onClick={handleCheckDel}>
+                <FaTrashAlt />
+              </div>
             </div>
           </div>
         </div>

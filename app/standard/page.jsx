@@ -312,7 +312,7 @@ export default function Standard() {
   }, []);
 
   return (
-    
+    <div className="standard_calculator">
     <div className={`main_content ${history ? "on" : ""}`}>
       <div className="main_box">
         <div className="r_monitor">
@@ -519,6 +519,7 @@ export default function Standard() {
           </div>
         </div>
       </div>
+    </div>  
     </div>
   );
 }

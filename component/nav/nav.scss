@@ -1,17 +1,41 @@
-.c_nav {
+.c_nav_box {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 25px;
-  gap: 25px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 
-  .c_nav_title {
-    color: #cfcff1;
-    font-size: 1.3rem;
-    font-weight: 500;
-    cursor: pointer;
-    &.on {
-      color: #7272ad;
+  .c_nav {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 25px;
+
+    .c_nav_title {
+      color: #cfcff1;
+      font-size: 1.3rem;
+      font-weight: 500;
+      cursor: pointer;
+      &.on {
+        color: #7272ad;
+      }
+    }
+  }
+  .programmer_nav {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    .programmer_nav_title {
+      font-size: 0.9rem;
+      color: #cfcff1;
+      cursor: pointer;
+      &.on {
+        color: #7272ad;
+      }
     }
   }
 }
