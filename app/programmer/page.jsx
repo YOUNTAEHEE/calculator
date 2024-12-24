@@ -10,7 +10,11 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import { useSearchParams } from "next/navigation";
-// import {addCalculator, getCalculator}   from "../../lib/actions";
+import {
+  addProgrammer,
+  getProgrammer,
+  deleteProgrammer,
+} from "../../lib/actions";
 export default function Programmer() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
@@ -272,7 +276,7 @@ export default function Programmer() {
       //   : parseFloat(result.toFixed(5)).toString();
 
       // setResult(integerResult.toString());
-
+      const format_result = integerResult.toString();
       const newId = uuidv4();
 
       const formData = new FormData();
@@ -280,7 +284,7 @@ export default function Programmer() {
       formData.append("monitor_number", monitor_number);
       formData.append("monitor_result", format_result);
 
-      // await addCalculator(formData);
+      await addProgrammer(formData);
 
       setHistory_list((prev) => {
         const updatedHistory = [
@@ -332,10 +336,22 @@ export default function Programmer() {
     }
   };
 
-  const handleCheckDel = () => {
-    setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
-    setCheck_list([]);
+  const handleCheckDel = async () => {
+    try {
+      const formData = new FormData();
+
+      check_list.forEach((el) => {
+        formData.append("id", el);
+      });
+
+      await deleteProgrammer(formData);
+      setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
+      setCheck_list([]);
+    } catch (error) {
+      console.log(error);
+    }
   };
+
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
@@ -403,13 +419,13 @@ export default function Programmer() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
-  // useEffect(() => {
-  //   const loadHistory = async()=>{
-  //     const viewHistory = await getCalculator();
-  //     setHistory_list(viewHistory || []);
-  //   }
-  //   loadHistory();
-  // }, []);
+  useEffect(() => {
+    const loadHistory = async () => {
+      const viewHistory = await getProgrammer();
+      setHistory_list(viewHistory || []);
+    };
+    loadHistory();
+  }, []);
 
   return (
     <div className="programmer_calculator">
@@ -564,11 +580,14 @@ export default function Programmer() {
                 </div>
               </div>
               <div className="button_box">
-                <div className="num_button " onClick={handleMonitorNumber}>
+                <div
+                  className="num_button zero_btn"
+                  onClick={handleMonitorNumber}
+                >
                   0
                 </div>
-                <div className="none_btn"></div>
-                <div className=" none_btn"></div>
+                {/* <div className=" none_btn"> </div>
+                <div className=" none_btn"> </div> */}
               </div>
               <div className="button_box">
                 <div
