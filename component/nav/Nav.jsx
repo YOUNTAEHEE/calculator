@@ -47,7 +47,9 @@ export default function Nav() {
           프로그래머
         </div>
       </div>
-      <div className="programmer_nav">
+      <div
+        className={`programmer_nav ${choice_nav === "programmer" ? "on" : ""}`}
+      >
         <div
           className={`programmer_nav_title ${
             choice_nav === "programmer" && choice_programmer === "word"

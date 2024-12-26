@@ -36,13 +36,15 @@ export default function Programmer() {
     const value = e.target.textContent;
     const lastChar = monitor_number[monitor_number.length - 1];
     const match = monitor_number.match(/(\d+\.?\d*)$/);
+    const shiftLeftMatch = monitor_number.match(/(\d+)\s*<<$/);
+    const shiftRightMatch = monitor_number.match(/(\d+)\s*>>$/);
 
     if (/[)]/.test(lastChar) && /\d+/.test(value)) {
       return;
     }
-    if (/[%]/.test(lastChar) && /\d+/.test(value)) {
-      return;
-    }
+    // if (/[%]/.test(lastChar) && /\d+/.test(value)) {
+    //   return;
+    // }
     if (/[(]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
       return;
     }
@@ -53,9 +55,9 @@ export default function Programmer() {
       return;
     }
 
-    if (monitor_number.match(/(0+)$/) && /[+\-×÷%]/.test(value)) {
-      return;
-    }
+    // if (monitor_number.match(/(0+)$/) && /[+\-×÷]/.test(value)) {
+    //   return;
+    // }
 
     if (/[%]/.test(lastChar) && /[%]/.test(value)) {
       return;
@@ -66,43 +68,65 @@ export default function Programmer() {
     if (monitor_number === "" && /[+×÷%]/.test(value)) {
       return;
     }
+    if ((value === "<<" || value === ">>") && !match) {
+      return; // 숫자가 없으면 시프트 연산자 입력 불가
+    }
+
+    if (
+      (shiftLeftMatch && /\d+/.test(value)) ||
+      (shiftRightMatch && /\d+/.test(value))
+    ) {
+      if (!monitor_number || monitor_number.trim() === "") {
+        return;
+      }
+
+      const match = shiftLeftMatch || shiftRightMatch;
+      const operator = shiftLeftMatch ? "<<" : ">>";
+      const number = parseFloat(match[1]);
+
+      let formulaWithoutShift = monitor_number.slice(0, -match[0].length);
+      let newFormula = `${formulaWithoutShift}${number} ${operator} ${value}`;
+
+      setMonitor_number(newFormula);
+      return;
+    }
 
     if (/[+\-×÷]/.test(lastChar) && /[+\-×÷]/.test(value)) {
       return;
     } else {
-      if (value === "1/x") {
-        if (!monitor_number || monitor_number.trim() === "") {
-          return;
-        }
-        let number = parseFloat(match[1]);
-        let changeValue = `1 / ${number}`;
-        setMonitor_number(
-          monitor_number.slice(0, -match[0].length) + changeValue
-        );
-        return;
-      }
-      if (value === "x²") {
-        if (!monitor_number || monitor_number.trim() === "") {
-          return;
-        }
-        let number = parseFloat(match[1]);
-        let changeValue = `(${number} * ${number})`;
-        setMonitor_number(
-          monitor_number.slice(0, -match[0].length) + changeValue
-        );
-        return;
-      }
-      if (value === "²√x") {
-        if (!monitor_number || monitor_number.trim() === "") {
-          return;
-        }
-        let number = parseFloat(match[1]);
-        let changeValue = Math.sqrt(number);
-        setMonitor_number(
-          monitor_number.slice(0, -match[0].length) + changeValue
-        );
-        return;
-      }
+      // if (value === "1/x") {
+      //   if (!monitor_number || monitor_number.trim() === "") {
+      //     return;
+      //   }
+      //   let number = parseFloat(match[1]);
+      //   let changeValue = `1 / ${number}`;
+      //   setMonitor_number(
+      //     monitor_number.slice(0, -match[0].length) + changeValue
+      //   );
+      //   return;
+      // }
+      // if (value === "x²") {
+      //   if (!monitor_number || monitor_number.trim() === "") {
+      //     return;
+      //   }
+      //   let number = parseFloat(match[1]);
+      //   let changeValue = `(${number} * ${number})`;
+      //   setMonitor_number(
+      //     monitor_number.slice(0, -match[0].length) + changeValue
+      //   );
+      //   return;
+      // }
+      // if (value === "²√x") {
+      //   if (!monitor_number || monitor_number.trim() === "") {
+      //     return;
+      //   }
+      //   let number = parseFloat(match[1]);
+      //   let changeValue = Math.sqrt(number);
+      //   setMonitor_number(
+      //     monitor_number.slice(0, -match[0].length) + changeValue
+      //   );
+      //   return;
+      // }
 
       let min, max;
 
@@ -160,39 +184,65 @@ export default function Programmer() {
         return;
       }
 
-      if (!/[+\-×÷]/.test(monitor_number)) {
+      if (!/(?:[+\-×÷%]|>>|<<)/.test(monitor_number)) {
         return;
       }
 
-      if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
+      if (!monitor_number || /(?:[+\-×÷%]|>>|<<)$/.test(monitor_number)) {
         return;
       }
 
       let formula = monitor_number;
+
+      // 16진수 문자(A-F)를 포함한 숫자를 처리
+      // formula = formula.replace(/([0-9A-F]+)/g, (match) => {
+      //   return String(parseInt(match, 16)); // 16진수를 10진수로 변환
+      // });
+
+      formula = formula.replace(/(\d+)\s*÷\s*(\d+)/g, (match, num1, num2) => {
+        return String(parseInt(parseInt(num1) / parseInt(num2)));
+      });
+
+      // 시프트 연산 처리 추가
+      formula = formula.replace(/(\d+)\s*<<\s*(\d+)/g, (match, num, shift) => {
+        return String(parseInt(num) << parseInt(shift));
+      });
+
+      formula = formula.replace(/(\d+)\s*>>\s*(\d+)/g, (match, num, shift) => {
+        return String(parseInt(num) >> parseInt(shift));
+      });
 
       formula = formula
         .replace(/÷/g, "/")
         .replace(/×/g, "*")
         .replace(/−/g, "-");
 
-      formula = formula.replace(
-        /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
-        (match, number1, operator, number2) => {
-          const op = operator === "×" || operator === "*" ? "*" : "/";
-          return `(${number1} ${op} ${number2 / 100})`;
-        }
-      );
+      // formula = formula.replace(
+      //   /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
+      //   (match, number1, operator, number2) => {
+      //     const op = operator === "×" || operator === "*" ? "*" : "/";
+      //     return `(${number1} ${op} ${number2 / 100})`;
+      //   }
+      // );
 
-      formula = formula.replace(
-        /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
-        (match, number1, operator, number2) => {
-          return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
-        }
-      );
+      // formula = formula.replace(
+      //   /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
+      //   (match, number1, operator, number2) => {
+      //     return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
+      //   }
+      // );
 
       const result = new Function("return " + formula)();
       let integerResult = Math.floor(result);
-
+      // 2진수 변환 시 4비트 단위로 0을 채우는 함수
+      const padBinary = (num, bits = 4) => {
+        const binary = Math.abs(num).toString(2);
+        const padding = binary.length % bits;
+        if (padding > 0) {
+          return "0".repeat(bits - padding) + binary;
+        }
+        return binary;
+      };
       switch (mode) {
         case "word": {
           // 16비트 범위로 제한 (-32768 ~ 32767)
@@ -201,10 +251,10 @@ export default function Programmer() {
           if (integerResult >= 32768) {
             integerResult -= 65536;
           }
-          const absReslut = Math.abs(integerResult);
-          setResult_HEX(absReslut.toString(16).toUpperCase()); //16진수
-          setResult_OCT(absReslut.toString(8)); //8진수
-          setResult_BIN(absReslut.toString(2)); //2진수
+          const absResult = Math.abs(integerResult);
+          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
+          setResult_OCT("0o" + absResult.toString(8)); //8진수
+          setResult_BIN("0b" + padBinary(absResult)); //2진수
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
@@ -217,10 +267,10 @@ export default function Programmer() {
           if (integerResult >= 2147483648) {
             integerResult -= 4294967296;
           }
-          const absReslut = Math.abs(integerResult);
-          setResult_HEX(absReslut.toString(16).toUpperCase()); //16진수
-          setResult_OCT(absReslut.toString(8)); //8진수
-          setResult_BIN(absReslut.toString(2)); //2진수
+          const absResult = Math.abs(integerResult);
+          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
+          setResult_OCT("0o" + absResult.toString(8)); //8진수
+          setResult_BIN("0b" + padBinary(absResult)); //2진수
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
@@ -253,9 +303,9 @@ export default function Programmer() {
             }
 
             setResult(integerResult.toString());
-            setResult_HEX(integerResult.toString(16).toUpperCase());
-            setResult_OCT(integerResult.toString(8));
-            setResult_BIN(integerResult.toString(2));
+            setResult_HEX("0x" + integerResult.toString(16).toUpperCase());
+            setResult_OCT("0o" + integerResult.toString(8));
+            setResult_BIN("0b" + integerResult.toString(2));
             setResult_DEC(integerResult.toString());
           } catch (error) {
             console.error("QWORD calculation error:", error);
@@ -489,13 +539,13 @@ export default function Programmer() {
                     className="num_button s_button "
                     onClick={handleMonitorNumber}
                   >
-                    &#x226A;
+                    {"<<"}
                   </div>
                   <div
                     className="num_button s_button "
                     onClick={handleMonitorNumber}
                   >
-                    &#x226B;
+                    {">>"}
                   </div>
                   <div
                     className="num_button s_button s_b_f"
@@ -589,7 +639,7 @@ export default function Programmer() {
                 {/* <div className=" none_btn"> </div>
                 <div className=" none_btn"> </div> */}
               </div>
-              <div className="button_box">
+              {/* <div className="button_box">
                 <div
                   className="num_button s_button "
                   onClick={handleMonitorNumber}
@@ -629,7 +679,7 @@ export default function Programmer() {
                 >
                   F
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

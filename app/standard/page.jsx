@@ -9,7 +9,7 @@ import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
-import {addStandard, deleteStandard, getStandard}   from "../../lib/actions";
+import { addStandard, deleteStandard, getStandard } from "../../lib/actions";
 export default function Standard() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
@@ -22,7 +22,7 @@ export default function Standard() {
   // const [result_BIN, setResult_BIN] = useState("");
   // const [result_DEC, setResult_DEC] = useState("");
   const [show_mobile_btn, setShow_mobile_btn] = useState(false);
-  
+
   const handleMonitorNumber = (e) => {
     setResult("");
     const value = e.target.textContent;
@@ -38,15 +38,16 @@ export default function Standard() {
     if (/[(]/.test(lastChar) && /[+\-×÷%]/.test(value)) {
       return;
     }
-    if (    
+    if (
       (monitor_number.match(/^(0+)$/) && /\d+/.test(value)) ||
-      (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))){
-        return;
-      }
-  
-    if (monitor_number.match(/(0+)$/) && /[+\-×÷%]/.test(value)) {
+      (monitor_number.match(/[+\-×÷](0+)(?!\.)/) && /\d+/.test(value))
+    ) {
       return;
     }
+
+    // if (monitor_number.match(/(0+)$/) && /[+\-×÷]/.test(value)) {
+    //   return;
+    // }
 
     if (/[%]/.test(lastChar) && /[%]/.test(value)) {
       return;
@@ -111,25 +112,28 @@ export default function Standard() {
     // setResult_DEC(""); //10진수
   };
 
-  const handleMonitorResult = async(e) => {
-    try{
-      if(monitor_number.match(/([÷])(0+\.?0*)$/)){
+  const handleMonitorResult = async (e) => {
+    try {
+      if (monitor_number.match(/([÷])(0+\.?0*)$/)) {
         setResult(`0으로 나눌 수 없습니다.`);
         return;
       }
-  
+
       if (!/[+\-×÷]/.test(monitor_number)) {
         return;
       }
-  
+
       if (!monitor_number || /[+\-×÷]$/.test(monitor_number)) {
         return;
       }
-  
+
       let formula = monitor_number;
-  
-      formula = formula.replace(/÷/g, "/").replace(/×/g, "*").replace(/−/g, "-");
-  
+
+      formula = formula
+        .replace(/÷/g, "/")
+        .replace(/×/g, "*")
+        .replace(/−/g, "-");
+
       formula = formula.replace(
         /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
         (match, number1, operator, number2) => {
@@ -137,55 +141,55 @@ export default function Standard() {
           return `(${number1} ${op} ${number2 / 100})`;
         }
       );
-  
+
       formula = formula.replace(
         /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
         (match, number1, operator, number2) => {
           return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
         }
       );
-  
+
       const result = new Function("return " + formula)();
       // const integerResult = Math.floor(result);
-  
+
       // setResult_HEX(integerResult.toString(16).toUpperCase()); //16진수
       // setResult_OCT(integerResult.toString(8)); //8진수
       // setResult_BIN(integerResult.toString(2)); //2진수
       // setResult_DEC(integerResult.toString()); //10진수
-  
+
       const format_result = Number.isInteger(result)
         ? result.toString()
         : parseFloat(result.toFixed(5)).toString();
-  
+
       setResult(format_result);
-  
+
       const newId = uuidv4();
-  
+
       const formData = new FormData();
-      formData.append('id', newId);
+      formData.append("id", newId);
       formData.append("monitor_number", monitor_number);
       formData.append("monitor_result", format_result);
-  
+
       await addStandard(formData);
-  
+
       setHistory_list((prev) => {
         const updatedHistory = [
           {
             id: newId,
             monitor_number: monitor_number,
             monitor_result: format_result,
-          }, 
-          ...prev      
+          },
+          ...prev,
         ];
-  
+
         return updatedHistory;
       });
-      
+
       setMonitor_number("");
-    }catch(error){
+    } catch (error) {
       console.log(error);
     }
-    };
+  };
 
   const handleParenthesis = (e) => {
     if (!parenthesis) {
@@ -218,22 +222,21 @@ export default function Standard() {
     }
   };
 
-  const handleCheckDel = async() => {
-    try{
-    const formData = new FormData();
+  const handleCheckDel = async () => {
+    try {
+      const formData = new FormData();
 
-    check_list.forEach((el)=>{
-      formData.append('id', el);
-    })
-    
-    await deleteStandard(formData);
-    setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
-    setCheck_list([]);
-  }catch(error){
+      check_list.forEach((el) => {
+        formData.append("id", el);
+      });
+
+      await deleteStandard(formData);
+      setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
+      setCheck_list([]);
+    } catch (error) {
       console.log(error);
     }
   };
-
 
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
@@ -244,12 +247,12 @@ export default function Standard() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 500) { 
+      if (window.innerWidth > 500) {
         setShow_mobile_btn(false);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -302,25 +305,24 @@ export default function Standard() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
-
   useEffect(() => {
-    const loadHistory = async()=>{
+    const loadHistory = async () => {
       const viewHistory = await getStandard();
       setHistory_list(viewHistory || []);
-    }
+    };
     loadHistory();
   }, []);
 
   return (
     <div className="standard_calculator">
-    <div className={`main_content ${history ? "on" : ""}`}>
-      <div className="main_box">
-        <div className="r_monitor">
-          <div className="monitor_top_box">
-          <p className="monitor_text monitor_top_text">{monitor_number}</p>
-          <p className="monitor_result">{result}</p>
-          </div>
-          {/* <div className="monitor_bottom_box">
+      <div className={`main_content ${history ? "on" : ""}`}>
+        <div className="main_box">
+          <div className="r_monitor">
+            <div className="monitor_top_box">
+              <p className="monitor_text monitor_top_text">{monitor_number}</p>
+              <p className="monitor_result">{result}</p>
+            </div>
+            {/* <div className="monitor_bottom_box">
             <div className="monitor_bottom_box_1 ">
               <p className=" m_s_text_top">HEX</p>
               <p className=" m_s_text_top">DEC</p>
@@ -334,15 +336,24 @@ export default function Standard() {
               <p className=" m_s_text_result">{result_BIN}</p>
             </div>
           </div> */}
-        </div>
-        <div className="button_big_box">
-          <div className="button_box_center" onClick={handleHistory}>
-            기록
           </div>
-          <div className="button_box_mobile_show_btn " onClick={()=>setShow_mobile_btn(!show_mobile_btn)}>계산기 기능 키 {show_mobile_btn ? '숨기기' : '펼치기'}</div>
-         
-          <div className="button_box_wrap">
-            <div className={`mobile_hidden ${show_mobile_btn === true ? 'on' : '' }`}>
+          <div className="button_big_box">
+            <div className="button_box_center" onClick={handleHistory}>
+              기록
+            </div>
+            <div
+              className="button_box_mobile_show_btn "
+              onClick={() => setShow_mobile_btn(!show_mobile_btn)}
+            >
+              계산기 기능 키 {show_mobile_btn ? "숨기기" : "펼치기"}
+            </div>
+
+            <div className="button_box_wrap">
+              <div
+                className={`mobile_hidden ${
+                  show_mobile_btn === true ? "on" : ""
+                }`}
+              >
                 <div className="button_box">
                   <div
                     className="num_button s_button s_b_f_2 all_del_button"
@@ -357,7 +368,7 @@ export default function Standard() {
                     <FaDeleteLeft />
                   </div>
                 </div>
-              
+
                 {/* 연산자 추가 */}
                 <div className="button_box">
                   <div
@@ -420,106 +431,106 @@ export default function Standard() {
                     =
                   </div>
                 </div>
-            </div>
-            <div className="button_box">
-              <div className="num_button" onClick={handleMonitorNumber}>
-                7
               </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                8
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                9
-              </div>
-            </div>
-            <div className="button_box">
-              <div className="num_button" onClick={handleMonitorNumber}>
-                4
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                5
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                6
-              </div>
-            </div>
-            <div className="button_box">
-              <div className="num_button" onClick={handleMonitorNumber}>
-                1
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                2
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                3
-              </div>
-            </div>
-            <div className="button_box">
-              <div
-                className="num_button s_button s_b_f"
-                onClick={handleParenthesis}
-              >
-                ()
-              </div>
-              <div className="num_button" onClick={handleMonitorNumber}>
-                0
-              </div>
-              <div
-                className="num_button s_button s_b_big"
-                onClick={handleMonitorNumber}
-              >
-                .
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className={`history_wrap ${history ? "on" : ""}`}>
-        <div className="history_m_wrap">
-          <div className="history_small_wrap">
-            {history_list.map((item, index) => (
-              <div className="history_one" key={item.id}>
-                <input
-                  className="history_one_check"
-                  type="checkbox"
-                  onChange={(e) => {
-                    handleSingleCheck(e.target.checked, item.id);
-                  }}
-                  checked={check_list.includes(item.id)}
-                />
-                <div className="history_one_in_box2">
-                  <p className="history_formula">{item.monitor_number}</p>
-                  <p className="history_result">{item.monitor_result}</p>
+              <div className="button_box">
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  7
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  8
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  9
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="history_bottom">
-            <div className="all_check">
-              <input
-                className="history_all_check"
-                type="checkbox"
-                id="history_all_check"
-                onChange={(e) => handleAllCheck(e.target.checked)}
-                checked={
-                  check_list.length === history_list.length &&
-                  history_list.length > 0
-                }
-              />
-              <label
-                className="history_all_check_text"
-                htmlFor="history_all_check"
-              >
-                전체 선택
-              </label>
+              <div className="button_box">
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  4
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  5
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  6
+                </div>
+              </div>
+              <div className="button_box">
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  1
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  2
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  3
+                </div>
+              </div>
+              <div className="button_box">
+                <div
+                  className="num_button s_button s_b_f"
+                  onClick={handleParenthesis}
+                >
+                  ()
+                </div>
+                <div className="num_button" onClick={handleMonitorNumber}>
+                  0
+                </div>
+                <div
+                  className="num_button s_button s_b_big"
+                  onClick={handleMonitorNumber}
+                >
+                  .
+                </div>
+              </div>
             </div>
-            <div className="delete_btn" onClick={handleCheckDel}>
-              <FaTrashAlt />
+          </div>
+        </div>
+        <div className={`history_wrap ${history ? "on" : ""}`}>
+          <div className="history_m_wrap">
+            <div className="history_small_wrap">
+              {history_list.map((item, index) => (
+                <div className="history_one" key={item.id}>
+                  <input
+                    className="history_one_check"
+                    type="checkbox"
+                    onChange={(e) => {
+                      handleSingleCheck(e.target.checked, item.id);
+                    }}
+                    checked={check_list.includes(item.id)}
+                  />
+                  <div className="history_one_in_box2">
+                    <p className="history_formula">{item.monitor_number}</p>
+                    <p className="history_result">{item.monitor_result}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="history_bottom">
+              <div className="all_check">
+                <input
+                  className="history_all_check"
+                  type="checkbox"
+                  id="history_all_check"
+                  onChange={(e) => handleAllCheck(e.target.checked)}
+                  checked={
+                    check_list.length === history_list.length &&
+                    history_list.length > 0
+                  }
+                />
+                <label
+                  className="history_all_check_text"
+                  htmlFor="history_all_check"
+                >
+                  전체 선택
+                </label>
+              </div>
+              <div className="delete_btn" onClick={handleCheckDel}>
+                <FaTrashAlt />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>  
     </div>
   );
 }

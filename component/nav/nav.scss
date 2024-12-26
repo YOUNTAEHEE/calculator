@@ -29,10 +29,15 @@
     justify-content: center;
     align-items: center;
     gap: 25px;
+    display: none;
+    &.on {
+      display: flex;
+    }
     .programmer_nav_title {
       font-size: 0.9rem;
       color: #cfcff1;
       cursor: pointer;
+
       &.on {
         color: #7272ad;
       }
