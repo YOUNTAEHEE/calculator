@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import "./home.scss";
 import Nav from "../component/nav/Nav";
+import Clock from "../component/clock/Clock";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <div className="home_containerWrap">
+          <Clock />
           <Nav />
           {children}
         </div>

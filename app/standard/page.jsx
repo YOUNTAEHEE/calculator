@@ -10,6 +10,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import { addStandard, deleteStandard, getStandard } from "../../lib/actions";
+
 export default function Standard() {
   const [monitor_number, setMonitor_number] = useState("");
   const [result, setResult] = useState("");
@@ -310,7 +311,11 @@ export default function Standard() {
       const viewHistory = await getStandard();
       setHistory_list(viewHistory || []);
     };
+
     loadHistory();
+    // 5초마다 데이터 새로고침
+    const intervalId = setInterval(loadHistory, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (

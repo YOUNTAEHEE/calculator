@@ -298,6 +298,20 @@
         &.on {
           display: block;
         }
+        .history_top {
+          width: 100%;
+          height: 30px;
+          margin-bottom: 10px;
+          .history_date {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #b8b8e6;
+            border-radius: 5px;
+            padding: 5px;
+            color: #7359a7;
+            background-color: #e6e6fa;
+          }
+        }
         .history_m_wrap {
           width: 338px;
           // min-height: 780px;
@@ -313,8 +327,8 @@
           .history_small_wrap {
             width: 100%;
             height: calc(100% - 45px);
-            min-height: 540px;
-            max-height: 540px;
+            min-height: 500px;
+            max-height: 500px;
             border-radius: 5px;
             background-color: #f6f6ff;
             overflow: hidden;

@@ -10,6 +10,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import { useSearchParams } from "next/navigation";
+import { DatePicker } from "@nextui-org/react";
 import {
   addProgrammer,
   getProgrammer,
@@ -237,12 +238,15 @@ export default function Programmer() {
       // 2진수 변환 시 4비트 단위로 0을 채우는 함수
       const padBinary = (num, bits = 4) => {
         const binary = Math.abs(num).toString(2);
+        // 4비트 단위로 맞추기 위한 앞쪽 0 패딩
         const padding = binary.length % bits;
-        if (padding > 0) {
-          return "0".repeat(bits - padding) + binary;
-        }
-        return binary;
+        const paddedBinary =
+          padding > 0 ? "0".repeat(bits - padding) + binary : binary;
+
+        // 4비트씩 그룹화하고 공백으로 구분
+        return paddedBinary.match(/.{1,4}/g).join(" ");
       };
+      const newId = uuidv4();
       switch (mode) {
         case "word": {
           // 16비트 범위로 제한 (-32768 ~ 32767)
@@ -258,6 +262,26 @@ export default function Programmer() {
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
+          const format_result = integerResult.toString();
+          const formData = new FormData();
+          formData.append("id", newId);
+          formData.append("monitor_number", monitor_number);
+          formData.append("monitor_result", format_result);
+
+          await addProgrammer(formData);
+          setHistory_list((prev) => {
+            const updatedHistory = [
+              {
+                id: newId,
+                monitor_number: monitor_number,
+                monitor_result: format_result,
+              },
+              ...prev,
+            ];
+
+            return updatedHistory;
+          });
+
           break;
         }
         case "dword": {
@@ -274,6 +298,26 @@ export default function Programmer() {
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
+          const format_result = integerResult.toString();
+          const formData = new FormData();
+          formData.append("id", newId);
+          formData.append("monitor_number", monitor_number);
+          formData.append("monitor_result", format_result);
+
+          await addProgrammer(formData);
+          setHistory_list((prev) => {
+            const updatedHistory = [
+              {
+                id: newId,
+                monitor_number: monitor_number,
+                monitor_result: format_result,
+              },
+              ...prev,
+            ];
+
+            return updatedHistory;
+          });
+
           break;
         }
         case "qword": {
@@ -307,6 +351,25 @@ export default function Programmer() {
             setResult_OCT("0o" + integerResult.toString(8));
             setResult_BIN("0b" + integerResult.toString(2));
             setResult_DEC(integerResult.toString());
+            const format_result = integerResult.toString();
+            const formData = new FormData();
+            formData.append("id", newId);
+            formData.append("monitor_number", monitor_number);
+            formData.append("monitor_result", format_result);
+
+            await addProgrammer(formData);
+            setHistory_list((prev) => {
+              const updatedHistory = [
+                {
+                  id: newId,
+                  monitor_number: monitor_number,
+                  monitor_result: format_result,
+                },
+                ...prev,
+              ];
+
+              return updatedHistory;
+            });
           } catch (error) {
             console.error("QWORD calculation error:", error);
             setResult("Error: Number too large");
@@ -326,28 +389,28 @@ export default function Programmer() {
       //   : parseFloat(result.toFixed(5)).toString();
 
       // setResult(integerResult.toString());
-      const format_result = integerResult.toString();
-      const newId = uuidv4();
 
-      const formData = new FormData();
-      formData.append("id", newId);
-      formData.append("monitor_number", monitor_number);
-      formData.append("monitor_result", format_result);
+      // const format_result = integerResult.toString();
 
-      await addProgrammer(formData);
+      // const formData = new FormData();
+      // formData.append("id", newId);
+      // formData.append("monitor_number", monitor_number);
+      // formData.append("monitor_result", format_result);
 
-      setHistory_list((prev) => {
-        const updatedHistory = [
-          {
-            id: newId,
-            monitor_number: monitor_number,
-            monitor_result: format_result,
-          },
-          ...prev,
-        ];
+      // await addProgrammer(formData);
 
-        return updatedHistory;
-      });
+      // setHistory_list((prev) => {
+      //   const updatedHistory = [
+      //     {
+      //       id: newId,
+      //       monitor_number: monitor_number,
+      //       monitor_result: format_result,
+      //     },
+      //     ...prev,
+      //   ];
+
+      //   return updatedHistory;
+      // });
 
       setMonitor_number("");
     } catch (error) {
@@ -393,6 +456,20 @@ export default function Programmer() {
       check_list.forEach((el) => {
         formData.append("id", el);
       });
+
+      const currenrData = await getProgrammer();
+      const existData = currenrData.map((el) => el.id);
+      const nonExistData = check_list.filter((el) => !existData.includes(el));
+      if (nonExistData.length > 0) {
+        alert("이미 삭제된 내용입니다.");
+
+        setHistory_list((prev) =>
+          prev.filter((el) => !nonExistData.includes(el.id))
+        );
+        setCheck_list((prev) =>
+          prev.filter((id) => !nonExistData.includes(id))
+        );
+      }
 
       await deleteProgrammer(formData);
       setHistory_list(history_list.filter((el) => !check_list.includes(el.id)));
@@ -474,7 +551,11 @@ export default function Programmer() {
       const viewHistory = await getProgrammer();
       setHistory_list(viewHistory || []);
     };
+
     loadHistory();
+    // 5초마다 데이터 새로고침
+    const intervalId = setInterval(loadHistory, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -684,6 +765,15 @@ export default function Programmer() {
           </div>
         </div>
         <div className={`history_wrap ${history ? "on" : ""}`}>
+          <div className="history_top">
+            <input
+              type="date"
+              id="start-date"
+              min=""
+              max=""
+              className="history_date"
+            ></input>
+          </div>
           <div className="history_m_wrap">
             <div className="history_small_wrap">
               {history_list.map((item, index) => (
