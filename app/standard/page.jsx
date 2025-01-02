@@ -3,13 +3,19 @@
 import Image from "next/image";
 // import styles from "./versionOne.scss";
 import styles from "./standard.scss";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
-import { addStandard, deleteStandard, getStandard } from "../../lib/actions";
+import { CSVLink, CSVDownload } from "react-csv";
+import {
+  addStandard,
+  deleteStandard,
+  getStandard,
+  getStandardByDate,
+} from "../../lib/actions";
 
 export default function Standard() {
   const [monitor_number, setMonitor_number] = useState("");
@@ -23,6 +29,23 @@ export default function Standard() {
   // const [result_BIN, setResult_BIN] = useState("");
   // const [result_DEC, setResult_DEC] = useState("");
   const [show_mobile_btn, setShow_mobile_btn] = useState(false);
+  const [selectDate, setSelectDate] = useState(() => {
+    return (
+      sessionStorage.getItem("selectDate") ||
+      new Date().toISOString().split("T")[0]
+    );
+  });
+  const CSVHeader = [
+    { label: "날짜", key: "monitor_date" },
+    { label: "계산식", key: "monitor_number" },
+    { label: "답", key: "monitor_result" },
+  ];
+
+  const CSVdata = history_list.map((item) => ({
+    monitor_number: item.monitor_number,
+    monitor_result: item.monitor_result,
+    monitor_date: item.monitor_date,
+  }));
 
   const handleMonitorNumber = (e) => {
     setResult("");
@@ -115,6 +138,20 @@ export default function Standard() {
 
   const handleMonitorResult = async (e) => {
     try {
+      const today = new Date().toISOString().split("T")[0];
+      const todayKOR = new Date()
+        .toLocaleString("ko-KR", {
+          timeZone: "Asia/Seoul",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+        .replace(/\./g, "-")
+        .replace(/\.$/, "")
+        .replace(/- (오전|오후)/, " $1");
       if (monitor_number.match(/([÷])(0+\.?0*)$/)) {
         setResult(`0으로 나눌 수 없습니다.`);
         return;
@@ -170,22 +207,24 @@ export default function Standard() {
       formData.append("id", newId);
       formData.append("monitor_number", monitor_number);
       formData.append("monitor_result", format_result);
-
+      formData.append("monitor_date", todayKOR);
       await addStandard(formData);
 
-      setHistory_list((prev) => {
-        const updatedHistory = [
-          {
-            id: newId,
-            monitor_number: monitor_number,
-            monitor_result: format_result,
-          },
-          ...prev,
-        ];
+      if (selectDate === today) {
+        setHistory_list((prev) => {
+          const updatedHistory = [
+            {
+              id: newId,
+              monitor_number: monitor_number,
+              monitor_result: format_result,
+              monitor_date: todayKOR,
+            },
+            ...prev,
+          ];
 
-        return updatedHistory;
-      });
-
+          return updatedHistory;
+        });
+      }
       setMonitor_number("");
     } catch (error) {
       console.log(error);
@@ -236,6 +275,19 @@ export default function Standard() {
       setCheck_list([]);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const handleDateChange = async (e) => {
+    const date = e.target.value;
+    setSelectDate(date);
+    sessionStorage.setItem("selectedDate", date);
+
+    try {
+      const dateData = await getStandardByDate(date);
+      setHistory_list(dateData);
+    } catch (error) {
+      console.log("날짜 조회 실패", error);
     }
   };
 
@@ -306,17 +358,21 @@ export default function Standard() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      const viewHistory = await getStandard();
+  const loadHistory = useCallback(async () => {
+    try {
+      const viewHistory = await getStandardByDate(selectDate);
       setHistory_list(viewHistory || []);
-    };
+    } catch (error) {
+      console.error("데이터 로딩 실패", error);
+    }
+  }, [selectDate]);
 
+  useEffect(() => {
     loadHistory();
     // 5초마다 데이터 새로고침
     const intervalId = setInterval(loadHistory, 5000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [loadHistory]);
 
   return (
     <div className="standard_calculator">
@@ -491,24 +547,52 @@ export default function Standard() {
           </div>
         </div>
         <div className={`history_wrap ${history ? "on" : ""}`}>
+          <div className="history_top">
+            <CSVLink
+              data={CSVdata}
+              headers={CSVHeader}
+              filename={`계산 기록 CSV`}
+              className="history_top_csv"
+            >
+              CSV 저장
+            </CSVLink>
+            <input
+              type="date"
+              id="start-date"
+              min=""
+              value={selectDate}
+              onChange={handleDateChange}
+              max={new Date().toISOString().split("T")[0]}
+              className="history_date"
+            ></input>
+          </div>
           <div className="history_m_wrap">
             <div className="history_small_wrap">
-              {history_list.map((item, index) => (
-                <div className="history_one" key={item.id}>
-                  <input
-                    className="history_one_check"
-                    type="checkbox"
-                    onChange={(e) => {
-                      handleSingleCheck(e.target.checked, item.id);
-                    }}
-                    checked={check_list.includes(item.id)}
-                  />
-                  <div className="history_one_in_box2">
-                    <p className="history_formula">{item.monitor_number}</p>
-                    <p className="history_result">{item.monitor_result}</p>
+              {history_list.length > 0 ? (
+                history_list.map((item, index) => (
+                  <div className="history_one" key={item.id}>
+                    <input
+                      className="history_one_check"
+                      type="checkbox"
+                      onChange={(e) => {
+                        handleSingleCheck(e.target.checked, item.id);
+                      }}
+                      checked={check_list.includes(item.id)}
+                    />
+                    <div className="history_one_in_box2">
+                      <p className="history_formula">{item.monitor_number}</p>
+                      <p className="history_result">{item.monitor_result}</p>
+                      <p className="history_monitor_date">
+                        {item.monitor_date}
+                      </p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="history_none">
+                  <p>해당 날짜의 기록이 없습니다.</p>
                 </div>
-              ))}
+              )}
             </div>
             <div className="history_bottom">
               <div className="all_check">

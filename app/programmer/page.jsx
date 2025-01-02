@@ -10,6 +10,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import { useSearchParams } from "next/navigation";
+import { CSVLink, CSVDownload } from "react-csv";
 import {
   addProgrammer,
   getProgrammer,
@@ -34,6 +35,18 @@ export default function Programmer() {
       new Date().toISOString().split("T")[0]
     );
   });
+
+  const CSVHeader = [
+    { label: "날짜", key: "monitor_date" },
+    { label: "계산식", key: "monitor_number" },
+    { label: "답", key: "monitor_result" },
+  ];
+
+  const CSVdata = history_list.map((item) => ({
+    monitor_number: item.monitor_number,
+    monitor_result: item.monitor_result,
+    monitor_date: item.monitor_date,
+  }));
 
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
@@ -186,6 +199,20 @@ export default function Programmer() {
 
   const handleMonitorResult = async (e) => {
     try {
+      const today = new Date().toISOString().split("T")[0];
+      const todayKOR = new Date()
+        .toLocaleString("ko-KR", {
+          timeZone: "Asia/Seoul",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+        .replace(/\./g, "-")
+        .replace(/\.$/, "")
+        .replace(/- (오전|오후)/, " $1");
       if (monitor_number.match(/([÷])(0+\.?0*)$/)) {
         setResult(`0으로 나눌 수 없습니다.`);
         return;
@@ -273,20 +300,23 @@ export default function Programmer() {
           formData.append("id", newId);
           formData.append("monitor_number", monitor_number);
           formData.append("monitor_result", format_result);
-
+          formData.append("monitor_date", todayKOR);
           await addProgrammer(formData);
-          setHistory_list((prev) => {
-            const updatedHistory = [
-              {
-                id: newId,
-                monitor_number: monitor_number,
-                monitor_result: format_result,
-              },
-              ...prev,
-            ];
+          if (selectDate === today) {
+            setHistory_list((prev) => {
+              const updatedHistory = [
+                {
+                  id: newId,
+                  monitor_number: monitor_number,
+                  monitor_result: format_result,
+                  monitor_date: todayKOR,
+                },
+                ...prev,
+              ];
 
-            return updatedHistory;
-          });
+              return updatedHistory;
+            });
+          }
 
           break;
         }
@@ -309,20 +339,23 @@ export default function Programmer() {
           formData.append("id", newId);
           formData.append("monitor_number", monitor_number);
           formData.append("monitor_result", format_result);
-
+          formData.append("monitor_date", todayKOR);
           await addProgrammer(formData);
-          setHistory_list((prev) => {
-            const updatedHistory = [
-              {
-                id: newId,
-                monitor_number: monitor_number,
-                monitor_result: format_result,
-              },
-              ...prev,
-            ];
+          if (selectDate === today) {
+            setHistory_list((prev) => {
+              const updatedHistory = [
+                {
+                  id: newId,
+                  monitor_number: monitor_number,
+                  monitor_result: format_result,
+                  monitor_date: todayKOR,
+                },
+                ...prev,
+              ];
 
-            return updatedHistory;
-          });
+              return updatedHistory;
+            });
+          }
 
           break;
         }
@@ -362,20 +395,23 @@ export default function Programmer() {
             formData.append("id", newId);
             formData.append("monitor_number", monitor_number);
             formData.append("monitor_result", format_result);
-
+            formData.append("monitor_date", todayKOR);
             await addProgrammer(formData);
-            setHistory_list((prev) => {
-              const updatedHistory = [
-                {
-                  id: newId,
-                  monitor_number: monitor_number,
-                  monitor_result: format_result,
-                },
-                ...prev,
-              ];
+            if (selectDate === today) {
+              setHistory_list((prev) => {
+                const updatedHistory = [
+                  {
+                    id: newId,
+                    monitor_number: monitor_number,
+                    monitor_result: format_result,
+                    monitor_date: todayKOR,
+                  },
+                  ...prev,
+                ];
 
-              return updatedHistory;
-            });
+                return updatedHistory;
+              });
+            }
           } catch (error) {
             console.error("QWORD calculation error:", error);
             setResult("Error: Number too large");
@@ -573,7 +609,7 @@ export default function Programmer() {
       console.error("데이터 로딩 실패", error);
     }
   }, [selectDate]);
-  
+
   useEffect(() => {
     loadHistory();
     // 5초마다 데이터 새로고침
@@ -789,6 +825,14 @@ export default function Programmer() {
         </div>
         <div className={`history_wrap ${history ? "on" : ""}`}>
           <div className="history_top">
+            <CSVLink
+              data={CSVdata}
+              headers={CSVHeader}
+              filename={`계산 기록 CSV`}
+              className="history_top_csv"
+            >
+              CSV 저장
+            </CSVLink>
             <input
               type="date"
               id="start-date"
@@ -815,6 +859,9 @@ export default function Programmer() {
                     <div className="history_one_in_box2">
                       <p className="history_formula">{item.monitor_number}</p>
                       <p className="history_result">{item.monitor_result}</p>
+                      <p className="history_monitor_date">
+                        {item.monitor_date}
+                      </p>
                     </div>
                   </div>
                 ))

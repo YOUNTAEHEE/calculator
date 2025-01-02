@@ -289,6 +289,37 @@
         &.on {
           display: block;
         }
+        .history_top {
+          width: 100%;
+          height: 30px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.8rem;
+          gap: 10px;
+          .history_top_csv {
+            width: calc((100% - 10px) - 70%);
+            height: 100%;
+            border: 1px solid #b8b8e6;
+            border-radius: 5px;
+            padding: 5px;
+            color: #7359a7;
+            text-align: center;
+            background-color: #e6e6fa;
+            cursor: pointer;
+          }
+          .history_date {
+            width: 70%;
+            height: 100%;
+            border: 1px solid #b8b8e6;
+            border-radius: 5px;
+            padding: 5px;
+            color: #7359a7;
+            background-color: #e6e6fa;
+            cursor: pointer;
+          }
+        }
         .history_m_wrap {
           width: 338px;
           // min-height: 780px;
@@ -304,8 +335,8 @@
           .history_small_wrap {
             width: 100%;
             height: calc(100% - 45px);
-            min-height: 540px;
-            max-height: 540px;
+            min-height: 490px;
+            max-height: 490px;
             border-radius: 5px;
             background-color: #f6f6ff;
             overflow: hidden;
@@ -323,10 +354,15 @@
               background: #b19ae0;
               border-radius: 5px;
             }
-
+            .history_none {
+              font-size: 1rem;
+              color: #7359a7;
+              margin-top: 20px;
+              text-align: center;
+            }
             .history_one {
               width: 100%;
-              height: 70px;
+              height: 100px;
               padding: 10px;
               text-align: right;
               border-top: 1px solid #b8b8e6;
@@ -374,6 +410,11 @@
                 .history_result {
                   font-size: 1.1rem;
                   font-weight: 600;
+                  margin-top: 10px;
+                }
+                .history_monitor_date {
+                  font-size: 0.8rem;
+                  color: #919191;
                   margin-top: 10px;
                 }
               }
@@ -736,6 +777,37 @@
         &.on {
           display: block;
         }
+        .history_top {
+          width: 100%;
+          height: 30px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.8rem;
+          gap: 10px;
+          .history_top_csv {
+            width: calc((100% - 10px) - 70%);
+            height: 100%;
+            border: 1px solid #b8b8e6;
+            border-radius: 5px;
+            padding: 5px;
+            color: #7359a7;
+            text-align: center;
+            background-color: #e6e6fa;
+            cursor: pointer;
+          }
+          .history_date {
+            width: 70%;
+            height: 100%;
+            border: 1px solid #b8b8e6;
+            border-radius: 5px;
+            padding: 5px;
+            color: #7359a7;
+            background-color: #e6e6fa;
+            cursor: pointer;
+          }
+        }
         .history_m_wrap {
           width: 338px;
           // min-height: 780px;
@@ -751,8 +823,8 @@
           .history_small_wrap {
             width: 100%;
             height: calc(100% - 45px);
-            min-height: 810px;
-            max-height: 810px;
+            min-height: 770px;
+            max-height: 770px;
             border-radius: 5px;
             background-color: #f6f6ff;
             overflow: hidden;
@@ -770,10 +842,15 @@
               background: #b19ae0;
               border-radius: 5px;
             }
-
+            .history_none {
+              font-size: 1rem;
+              color: #7359a7;
+              margin-top: 20px;
+              text-align: center;
+            }
             .history_one {
               width: 100%;
-              height: 70px;
+              height: 100px;
               padding: 10px;
               text-align: right;
               border-top: 1px solid #b8b8e6;
@@ -821,6 +898,11 @@
                 .history_result {
                   font-size: 1.1rem;
                   font-weight: 600;
+                  margin-top: 10px;
+                }
+                .history_monitor_date {
+                  font-size: 0.8rem;
+                  color: #919191;
                   margin-top: 10px;
                 }
               }
