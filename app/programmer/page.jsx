@@ -35,7 +35,14 @@ export default function Programmer() {
       new Date().toISOString().split("T")[0]
     );
   });
-
+  const loadHistory = async () => {
+    try {
+      const viewHistory = await getProgrammerByDate(selectDate);
+      setHistory_list(viewHistory || []);
+    } catch (error) {
+      console.error("데이터 로딩 실패", error);
+    }
+  };
   const CSVHeader = [
     { label: "날짜", key: "monitor_date" },
     { label: "계산식", key: "monitor_number" },
@@ -302,21 +309,22 @@ export default function Programmer() {
           formData.append("monitor_result", format_result);
           formData.append("monitor_date", todayKOR);
           await addProgrammer(formData);
-          if (selectDate === today) {
-            setHistory_list((prev) => {
-              const updatedHistory = [
-                {
-                  id: newId,
-                  monitor_number: monitor_number,
-                  monitor_result: format_result,
-                  monitor_date: todayKOR,
-                },
-                ...prev,
-              ];
+          loadHistory();
+          // if (selectDate === today) {
+          //   setHistory_list((prev) => {
+          //     const updatedHistory = [
+          //       {
+          //         id: newId,
+          //         monitor_number: monitor_number,
+          //         monitor_result: format_result,
+          //         monitor_date: todayKOR,
+          //       },
+          //       ...prev,
+          //     ];
 
-              return updatedHistory;
-            });
-          }
+          //     return updatedHistory;
+          //   });
+          // }
 
           break;
         }
@@ -341,21 +349,22 @@ export default function Programmer() {
           formData.append("monitor_result", format_result);
           formData.append("monitor_date", todayKOR);
           await addProgrammer(formData);
-          if (selectDate === today) {
-            setHistory_list((prev) => {
-              const updatedHistory = [
-                {
-                  id: newId,
-                  monitor_number: monitor_number,
-                  monitor_result: format_result,
-                  monitor_date: todayKOR,
-                },
-                ...prev,
-              ];
+          loadHistory();
+          // if (selectDate === today) {
+          //   setHistory_list((prev) => {
+          //     const updatedHistory = [
+          //       {
+          //         id: newId,
+          //         monitor_number: monitor_number,
+          //         monitor_result: format_result,
+          //         monitor_date: todayKOR,
+          //       },
+          //       ...prev,
+          //     ];
 
-              return updatedHistory;
-            });
-          }
+          //     return updatedHistory;
+          //   });
+          // }
 
           break;
         }
@@ -397,21 +406,22 @@ export default function Programmer() {
             formData.append("monitor_result", format_result);
             formData.append("monitor_date", todayKOR);
             await addProgrammer(formData);
-            if (selectDate === today) {
-              setHistory_list((prev) => {
-                const updatedHistory = [
-                  {
-                    id: newId,
-                    monitor_number: monitor_number,
-                    monitor_result: format_result,
-                    monitor_date: todayKOR,
-                  },
-                  ...prev,
-                ];
+            loadHistory();
+            // if (selectDate === today) {
+            //   setHistory_list((prev) => {
+            //     const updatedHistory = [
+            //       {
+            //         id: newId,
+            //         monitor_number: monitor_number,
+            //         monitor_result: format_result,
+            //         monitor_date: todayKOR,
+            //       },
+            //       ...prev,
+            //     ];
 
-                return updatedHistory;
-              });
-            }
+            //     return updatedHistory;
+            //   });
+            // }
           } catch (error) {
             console.error("QWORD calculation error:", error);
             setResult("Error: Number too large");
@@ -601,22 +611,11 @@ export default function Programmer() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
-  const loadHistory = useCallback(async () => {
-    try {
-      const viewHistory = await getProgrammerByDate(selectDate);
-      setHistory_list(viewHistory || []);
-    } catch (error) {
-      console.error("데이터 로딩 실패", error);
-    }
-  }, [selectDate]);
-
   useEffect(() => {
-    loadHistory();
-    // 5초마다 데이터 새로고침
-    const intervalId = setInterval(loadHistory, 5000);
+    loadHistory(); // 즉시 호출
+    const intervalId = setInterval(loadHistory, 1000); // 1초마다 갱신
     return () => clearInterval(intervalId);
-  }, [loadHistory]);
-
+  }, [selectDate]); // selectDate 의존성 추가
   return (
     <div className="programmer_calculator">
       <div className={`main_content ${history ? "on" : ""}`}>
