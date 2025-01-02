@@ -310,6 +310,7 @@
             padding: 5px;
             color: #7359a7;
             background-color: #e6e6fa;
+            cursor: pointer;
           }
         }
         .history_m_wrap {
@@ -346,7 +347,12 @@
               background: #b19ae0;
               border-radius: 5px;
             }
-
+            .history_none {
+              font-size: 1rem;
+              color: #7359a7;
+              margin-top: 20px;
+              text-align: center;
+            }
             .history_one {
               width: 100%;
               height: 70px;

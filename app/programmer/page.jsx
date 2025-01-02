@@ -3,18 +3,18 @@
 import Image from "next/image";
 // import styles from "./versionOne.scss";
 import styles from "./programmer.scss";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
 import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import { useSearchParams } from "next/navigation";
-import { DatePicker } from "@nextui-org/react";
 import {
   addProgrammer,
   getProgrammer,
   deleteProgrammer,
+  getProgrammerByDate,
 } from "../../lib/actions";
 export default function Programmer() {
   const [monitor_number, setMonitor_number] = useState("");
@@ -28,6 +28,12 @@ export default function Programmer() {
   const [result_BIN, setResult_BIN] = useState("");
   const [result_DEC, setResult_DEC] = useState("");
   const [show_mobile_btn, setShow_mobile_btn] = useState(false);
+  const [selectDate, setSelectDate] = useState(() => {
+    return (
+      sessionStorage.getItem("selectedDate") ||
+      new Date().toISOString().split("T")[0]
+    );
+  });
 
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
@@ -479,6 +485,19 @@ export default function Programmer() {
     }
   };
 
+  const handleDateChange = async (e) => {
+    const date = e.target.value;
+    setSelectDate(date);
+    sessionStorage.setItem("selectedDate", date);
+
+    try {
+      const dateData = await getProgrammerByDate(date);
+      setHistory_list(dateData);
+    } catch (error) {
+      console.log("날짜 조회 실패", error);
+    }
+  };
+
   useEffect(() => {
     const element = document.querySelector(".monitor_text");
     if (element) {
@@ -546,17 +565,21 @@ export default function Programmer() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [monitor_number]);
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      const viewHistory = await getProgrammer();
+  const loadHistory = useCallback(async () => {
+    try {
+      const viewHistory = await getProgrammerByDate(selectDate);
       setHistory_list(viewHistory || []);
-    };
-
+    } catch (error) {
+      console.error("데이터 로딩 실패", error);
+    }
+  }, [selectDate]);
+  
+  useEffect(() => {
     loadHistory();
     // 5초마다 데이터 새로고침
     const intervalId = setInterval(loadHistory, 5000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [loadHistory]);
 
   return (
     <div className="programmer_calculator">
@@ -770,28 +793,36 @@ export default function Programmer() {
               type="date"
               id="start-date"
               min=""
-              max=""
+              value={selectDate}
+              onChange={handleDateChange}
+              max={new Date().toISOString().split("T")[0]}
               className="history_date"
             ></input>
           </div>
           <div className="history_m_wrap">
             <div className="history_small_wrap">
-              {history_list.map((item, index) => (
-                <div className="history_one" key={item.id}>
-                  <input
-                    className="history_one_check"
-                    type="checkbox"
-                    onChange={(e) => {
-                      handleSingleCheck(e.target.checked, item.id);
-                    }}
-                    checked={check_list.includes(item.id)}
-                  />
-                  <div className="history_one_in_box2">
-                    <p className="history_formula">{item.monitor_number}</p>
-                    <p className="history_result">{item.monitor_result}</p>
+              {history_list.length > 0 ? (
+                history_list.map((item, index) => (
+                  <div className="history_one" key={item.id}>
+                    <input
+                      className="history_one_check"
+                      type="checkbox"
+                      onChange={(e) => {
+                        handleSingleCheck(e.target.checked, item.id);
+                      }}
+                      checked={check_list.includes(item.id)}
+                    />
+                    <div className="history_one_in_box2">
+                      <p className="history_formula">{item.monitor_number}</p>
+                      <p className="history_result">{item.monitor_result}</p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="history_none">
+                  <p>해당 날짜의 기록이 없습니다.</p>
                 </div>
-              ))}
+              )}
             </div>
             <div className="history_bottom">
               <div className="all_check">
