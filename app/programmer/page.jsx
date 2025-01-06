@@ -35,14 +35,10 @@ export default function Programmer() {
       new Date().toISOString().split("T")[0]
     );
   });
-  const loadHistory = async () => {
-    try {
-      const viewHistory = await getProgrammerByDate(selectDate);
-      setHistory_list(viewHistory || []);
-    } catch (error) {
-      console.error("데이터 로딩 실패", error);
-    }
-  };
+
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+
   const CSVHeader = [
     { label: "날짜", key: "monitor_date" },
     { label: "계산식", key: "monitor_number" },
@@ -55,8 +51,93 @@ export default function Programmer() {
     monitor_date: item.monitor_date,
   }));
 
-  const searchParams = useSearchParams();
-  const mode = searchParams.get("mode");
+  useEffect(() => {
+    const element = document.querySelector(".monitor_text");
+    if (element) {
+      element.scrollLeft = element.scrollWidth;
+    }
+  }, [monitor_number]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 500) {
+        setShow_mobile_btn(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (result) {
+      recalculateResult(result);
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      switch (e.key) {
+        case "/":
+          handleMonitorNumber({ target: { textContent: "÷" } });
+          break;
+        case "*":
+          handleMonitorNumber({ target: { textContent: "×" } });
+          break;
+        case "-":
+          handleMonitorNumber({ target: { textContent: "-" } });
+          break;
+        case "+":
+          handleMonitorNumber({ target: { textContent: "+" } });
+          break;
+        case "%":
+          handleMonitorNumber({ target: { textContent: "%" } });
+          break;
+        case "Enter":
+          handleMonitorResult();
+          break;
+
+        case "0":
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+        case "6":
+        case "7":
+        case "8":
+        case "9":
+          handleMonitorNumber({ target: { textContent: e.key } });
+          break;
+        case ".":
+          handleMonitorNumber({ target: { textContent: "." } });
+          break;
+        case "Backspace":
+          handleMonitorOneDel();
+          break;
+        case "Delete":
+          handleAllDel();
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [monitor_number]);
+
+  useEffect(() => {
+    loadHistory(); // 즉시 호출
+    const intervalId = setInterval(loadHistory, 1000); // 1초마다 갱신
+    return () => clearInterval(intervalId);
+  }, [selectDate]); // selectDate 의존성 추가
+
+  const loadHistory = async () => {
+    try {
+      const viewHistory = await getProgrammerByDate(selectDate);
+      setHistory_list(viewHistory || []);
+    } catch (error) {
+      console.error("데이터 로딩 실패", error);
+    }
+  };
 
   const handleMonitorNumber = (e) => {
     setResult("");
@@ -121,40 +202,6 @@ export default function Programmer() {
     if (/[+\-×÷]/.test(lastChar) && /[+\-×÷]/.test(value)) {
       return;
     } else {
-      // if (value === "1/x") {
-      //   if (!monitor_number || monitor_number.trim() === "") {
-      //     return;
-      //   }
-      //   let number = parseFloat(match[1]);
-      //   let changeValue = `1 / ${number}`;
-      //   setMonitor_number(
-      //     monitor_number.slice(0, -match[0].length) + changeValue
-      //   );
-      //   return;
-      // }
-      // if (value === "x²") {
-      //   if (!monitor_number || monitor_number.trim() === "") {
-      //     return;
-      //   }
-      //   let number = parseFloat(match[1]);
-      //   let changeValue = `(${number} * ${number})`;
-      //   setMonitor_number(
-      //     monitor_number.slice(0, -match[0].length) + changeValue
-      //   );
-      //   return;
-      // }
-      // if (value === "²√x") {
-      //   if (!monitor_number || monitor_number.trim() === "") {
-      //     return;
-      //   }
-      //   let number = parseFloat(match[1]);
-      //   let changeValue = Math.sqrt(number);
-      //   setMonitor_number(
-      //     monitor_number.slice(0, -match[0].length) + changeValue
-      //   );
-      //   return;
-      // }
-
       let min, max;
 
       switch (mode) {
@@ -202,6 +249,84 @@ export default function Programmer() {
     setResult_OCT(""); //8진수
     setResult_BIN(""); //2진수
     setResult_DEC(""); //10진수
+  };
+
+  const recalculateResult = (calculatedResult) => {
+    try {
+      let integerResult = BigInt(calculatedResult);
+      const padBinary = (num, bits = 4) => {
+        const binary = Math.abs(num).toString(2);
+        // 4비트 단위로 맞추기 위한 앞쪽 0 패딩
+        const padding = binary.length % bits;
+        const paddedBinary =
+          padding > 0 ? "0".repeat(bits - padding) + binary : binary;
+
+        // 4비트씩 그룹화하고 공백으로 구분
+        return paddedBinary.match(/.{1,4}/g).join(" ");
+      };
+      switch (mode) {
+        case "word": {
+          // 16비트 범위로 제한 (-32768 ~ 32767)
+          const mod = 1n << 16n; // 2^16
+          integerResult = ((integerResult % mod) + mod) % mod;
+          if (integerResult >= 32768n) {
+            integerResult -= mod;
+          }
+          // 최종 number로 캐스팅(이제 16비트 범위 안이므로 안전)
+          integerResult = Number(integerResult);
+          const absResult = Math.abs(integerResult);
+          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
+          setResult_OCT("0o" + absResult.toString(8)); //8진수
+          setResult_BIN("0b" + padBinary(absResult)); //2진수
+          setResult_DEC(integerResult.toString()); //10진수
+
+          setResult(integerResult.toString());
+
+          break;
+        }
+        case "dword": {
+          // 32비트 범위로 제한 (-2147483648 ~ 2147483647)
+          const mod = 1n << 32n; // 2^32
+          integerResult = ((integerResult % mod) + mod) % mod;
+          if (integerResult >= 2147483648n) {
+            integerResult -= mod;
+          }
+          integerResult = Number(integerResult);
+          const absResult = Math.abs(integerResult);
+          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
+          setResult_OCT("0o" + absResult.toString(8)); //8진수
+          setResult_BIN("0b" + padBinary(absResult)); //2진수
+          setResult_DEC(integerResult.toString()); //10진수
+
+          setResult(integerResult.toString());
+
+          break;
+        }
+        case "qword": {
+          try {
+            // 64비트 범위로 제한 (-2^63 ~ 2^63-1)
+            const mod = 1n << 64n; // 2^64
+            integerResult = ((integerResult % mod) + mod) % mod;
+            const boundary = 1n << 63n; // 2^63
+            if (integerResult >= boundary) {
+              integerResult -= mod;
+            }
+
+            setResult(integerResult.toString());
+            setResult_HEX("0x" + integerResult.toString(16).toUpperCase());
+            setResult_OCT("0o" + integerResult.toString(8));
+            setResult_BIN("0b" + integerResult.toString(2));
+            setResult_DEC(integerResult.toString());
+          } catch (error) {
+            console.error("QWORD calculation error:", error);
+            setResult("Error: Number too large");
+          }
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Recalculation error:", error);
+    }
   };
 
   const handleMonitorResult = async (e) => {
@@ -258,23 +383,8 @@ export default function Programmer() {
         .replace(/×/g, "*")
         .replace(/−/g, "-");
 
-      // formula = formula.replace(
-      //   /(\d+\.?\d*)\s*([×*÷/])\s*(\d+\.?\d*)\s*%/g,
-      //   (match, number1, operator, number2) => {
-      //     const op = operator === "×" || operator === "*" ? "*" : "/";
-      //     return `(${number1} ${op} ${number2 / 100})`;
-      //   }
-      // );
-
-      // formula = formula.replace(
-      //   /(\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)\s*%/g,
-      //   (match, number1, operator, number2) => {
-      //     return `(${number1} ${operator} (${number1} * ${number2 / 100}))`;
-      //   }
-      // );
-
       const result = new Function("return " + formula)();
-      let integerResult = Math.floor(result);
+      let integerResult = parseInt(result);
       // 2진수 변환 시 4비트 단위로 0을 채우는 함수
       const padBinary = (num, bits = 4) => {
         const binary = Math.abs(num).toString(2);
@@ -310,21 +420,6 @@ export default function Programmer() {
           formData.append("monitor_date", todayKOR);
           await addProgrammer(formData);
           loadHistory();
-          // if (selectDate === today) {
-          //   setHistory_list((prev) => {
-          //     const updatedHistory = [
-          //       {
-          //         id: newId,
-          //         monitor_number: monitor_number,
-          //         monitor_result: format_result,
-          //         monitor_date: todayKOR,
-          //       },
-          //       ...prev,
-          //     ];
-
-          //     return updatedHistory;
-          //   });
-          // }
 
           break;
         }
@@ -350,21 +445,6 @@ export default function Programmer() {
           formData.append("monitor_date", todayKOR);
           await addProgrammer(formData);
           loadHistory();
-          // if (selectDate === today) {
-          //   setHistory_list((prev) => {
-          //     const updatedHistory = [
-          //       {
-          //         id: newId,
-          //         monitor_number: monitor_number,
-          //         monitor_result: format_result,
-          //         monitor_date: todayKOR,
-          //       },
-          //       ...prev,
-          //     ];
-
-          //     return updatedHistory;
-          //   });
-          // }
 
           break;
         }
@@ -407,21 +487,6 @@ export default function Programmer() {
             formData.append("monitor_date", todayKOR);
             await addProgrammer(formData);
             loadHistory();
-            // if (selectDate === today) {
-            //   setHistory_list((prev) => {
-            //     const updatedHistory = [
-            //       {
-            //         id: newId,
-            //         monitor_number: monitor_number,
-            //         monitor_result: format_result,
-            //         monitor_date: todayKOR,
-            //       },
-            //       ...prev,
-            //     ];
-
-            //     return updatedHistory;
-            //   });
-            // }
           } catch (error) {
             console.error("QWORD calculation error:", error);
             setResult("Error: Number too large");
@@ -429,40 +494,6 @@ export default function Programmer() {
           break;
         }
       }
-
-      // const absReslut = Math.abs(integerResult);
-      // setResult_HEX(absReslut.toString(16).toUpperCase()); //16진수
-      // setResult_OCT(absReslut.toString(8)); //8진수
-      // setResult_BIN(absReslut.toString(2)); //2진수
-      // setResult_DEC(integerResult.toString()); //10진수
-
-      // const format_result = Number.isInteger(result)
-      //   ? result.toString()
-      //   : parseFloat(result.toFixed(5)).toString();
-
-      // setResult(integerResult.toString());
-
-      // const format_result = integerResult.toString();
-
-      // const formData = new FormData();
-      // formData.append("id", newId);
-      // formData.append("monitor_number", monitor_number);
-      // formData.append("monitor_result", format_result);
-
-      // await addProgrammer(formData);
-
-      // setHistory_list((prev) => {
-      //   const updatedHistory = [
-      //     {
-      //       id: newId,
-      //       monitor_number: monitor_number,
-      //       monitor_result: format_result,
-      //     },
-      //     ...prev,
-      //   ];
-
-      //   return updatedHistory;
-      // });
 
       setMonitor_number("");
     } catch (error) {
@@ -544,78 +575,6 @@ export default function Programmer() {
     }
   };
 
-  useEffect(() => {
-    const element = document.querySelector(".monitor_text");
-    if (element) {
-      element.scrollLeft = element.scrollWidth;
-    }
-  }, [monitor_number]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 500) {
-        setShow_mobile_btn(false);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      switch (e.key) {
-        case "/":
-          handleMonitorNumber({ target: { textContent: "÷" } });
-          break;
-        case "*":
-          handleMonitorNumber({ target: { textContent: "×" } });
-          break;
-        case "-":
-          handleMonitorNumber({ target: { textContent: "-" } });
-          break;
-        case "+":
-          handleMonitorNumber({ target: { textContent: "+" } });
-          break;
-        case "%":
-          handleMonitorNumber({ target: { textContent: "%" } });
-          break;
-        case "Enter":
-          handleMonitorResult();
-          break;
-
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9":
-          handleMonitorNumber({ target: { textContent: e.key } });
-          break;
-        case ".":
-          handleMonitorNumber({ target: { textContent: "." } });
-          break;
-        case "Backspace":
-          handleMonitorOneDel();
-          break;
-        case "Delete":
-          handleAllDel();
-          break;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [monitor_number]);
-
-  useEffect(() => {
-    loadHistory(); // 즉시 호출
-    const intervalId = setInterval(loadHistory, 1000); // 1초마다 갱신
-    return () => clearInterval(intervalId);
-  }, [selectDate]); // selectDate 의존성 추가
   return (
     <div className="programmer_calculator">
       <div className={`main_content ${history ? "on" : ""}`}>
