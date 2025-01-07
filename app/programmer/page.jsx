@@ -18,7 +18,10 @@ import {
   getProgrammerByDate,
 } from "../../lib/actions";
 export default function Programmer() {
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
   const [monitor_number, setMonitor_number] = useState("");
+  const [pro_mode, setPro_mode] = useState("WORD");
   const [result, setResult] = useState("");
   const [history, setHistory] = useState(false);
   const [history_list, setHistory_list] = useState([]);
@@ -36,9 +39,6 @@ export default function Programmer() {
     );
   });
 
-  const searchParams = useSearchParams();
-  const mode = searchParams.get("mode");
-
   const CSVHeader = [
     { label: "날짜", key: "monitor_date" },
     { label: "계산식", key: "monitor_number" },
@@ -46,7 +46,7 @@ export default function Programmer() {
   ];
 
   const CSVdata = history_list.map((item) => ({
-    monitor_number: item.monitor_number,
+    monitor_number: `'${item.monitor_number}`,
     monitor_result: item.monitor_result,
     monitor_date: item.monitor_date,
   }));
@@ -72,6 +72,10 @@ export default function Programmer() {
     if (result) {
       recalculateResult(result);
     }
+  }, [mode]);
+
+  useEffect(() => {
+    setPro_mode(mode);
   }, [mode]);
 
   useEffect(() => {
@@ -205,15 +209,15 @@ export default function Programmer() {
       let min, max;
 
       switch (mode) {
-        case "word":
+        case "WORD":
           min = -32768;
           max = 32767;
           break;
-        case "dword":
+        case "DWORD":
           min = -2147483648;
           max = 2147483647;
           break;
-        case "qword":
+        case "QWORD":
           min = -9223372036854775808n;
           max = 9223372036854775807n;
           break;
@@ -227,7 +231,7 @@ export default function Programmer() {
         const lastNumber = numericParts[numericParts.length - 1];
         if (lastNumber) {
           const num =
-            mode === "qword" ? BigInt(lastNumber) : Number(lastNumber);
+            mode === "QWORD" ? BigInt(lastNumber) : Number(lastNumber);
           if (num < min || num > max) {
             return;
           }
@@ -255,7 +259,7 @@ export default function Programmer() {
     try {
       let integerResult = BigInt(calculatedResult);
       const padBinary = (num, bits = 4) => {
-        const binary = Math.abs(num).toString(2);
+        const binary = num < 0n ? (-num).toString(2) : num.toString(2);
         // 4비트 단위로 맞추기 위한 앞쪽 0 패딩
         const padding = binary.length % bits;
         const paddedBinary =
@@ -265,7 +269,7 @@ export default function Programmer() {
         return paddedBinary.match(/.{1,4}/g).join(" ");
       };
       switch (mode) {
-        case "word": {
+        case "WORD": {
           // 16비트 범위로 제한 (-32768 ~ 32767)
           const mod = 1n << 16n; // 2^16
           integerResult = ((integerResult % mod) + mod) % mod;
@@ -284,7 +288,7 @@ export default function Programmer() {
 
           break;
         }
-        case "dword": {
+        case "DWORD": {
           // 32비트 범위로 제한 (-2147483648 ~ 2147483647)
           const mod = 1n << 32n; // 2^32
           integerResult = ((integerResult % mod) + mod) % mod;
@@ -302,7 +306,7 @@ export default function Programmer() {
 
           break;
         }
-        case "qword": {
+        case "QWORD": {
           try {
             // 64비트 범위로 제한 (-2^63 ~ 2^63-1)
             const mod = 1n << 64n; // 2^64
@@ -341,10 +345,13 @@ export default function Programmer() {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
+          hour12: false,
         })
-        .replace(/\./g, "-")
-        .replace(/\.$/, "")
-        .replace(/- (오전|오후)/, " $1");
+        .replace(/\./g, "") // "2025 01 07 09:18:11"
+        .trim() // "2025 01 07 09:18:11"
+        .replace(/\s+/g, "-") // "2025-01-07-09:18:11"
+        .replace(/-(\d{2}):(\d{2}):(\d{2})$/, " $1:$2:$3");
+
       if (monitor_number.match(/([÷])(0+\.?0*)$/)) {
         setResult(`0으로 나눌 수 없습니다.`);
         return;
@@ -398,7 +405,7 @@ export default function Programmer() {
       };
       const newId = uuidv4();
       switch (mode) {
-        case "word": {
+        case "WORD": {
           // 16비트 범위로 제한 (-32768 ~ 32767)
           const mod = 65536; // 2^16
           integerResult = ((integerResult % mod) + mod) % mod;
@@ -418,12 +425,13 @@ export default function Programmer() {
           formData.append("monitor_number", monitor_number);
           formData.append("monitor_result", format_result);
           formData.append("monitor_date", todayKOR);
+          formData.append("pro_mode", pro_mode);
           await addProgrammer(formData);
           loadHistory();
 
           break;
         }
-        case "dword": {
+        case "DWORD": {
           // 32비트 범위로 제한 (-2147483648 ~ 2147483647)
           const mod = 4294967296; // 2^32
           integerResult = ((integerResult % mod) + mod) % mod;
@@ -443,12 +451,13 @@ export default function Programmer() {
           formData.append("monitor_number", monitor_number);
           formData.append("monitor_result", format_result);
           formData.append("monitor_date", todayKOR);
+          formData.append("pro_mode", pro_mode);
           await addProgrammer(formData);
           loadHistory();
 
           break;
         }
-        case "qword": {
+        case "QWORD": {
           try {
             // 문자열로 된 수식을 BigInt로 계산하기 위한 처리
             const cleanFormula = formula.replace(/×/g, "*").replace(/÷/g, "/");
@@ -485,6 +494,7 @@ export default function Programmer() {
             formData.append("monitor_number", monitor_number);
             formData.append("monitor_result", format_result);
             formData.append("monitor_date", todayKOR);
+            formData.append("pro_mode", pro_mode);
             await addProgrammer(formData);
             loadHistory();
           } catch (error) {
@@ -806,6 +816,16 @@ export default function Programmer() {
               {history_list.length > 0 ? (
                 history_list.map((item, index) => (
                   <div className="history_one" key={item.id}>
+                    <div className="history_one_in_box2">
+                      <p className="history_formula">{item.monitor_number}</p>
+                      <p className="history_result">{item.monitor_result}</p>
+                      <span className="history_monitor_date">
+                        {item.monitor_date}
+                      </span>
+                      <span className="history_pro_mode">
+                        / {item.pro_mode}
+                      </span>
+                    </div>
                     <input
                       className="history_one_check"
                       type="checkbox"
@@ -814,13 +834,6 @@ export default function Programmer() {
                       }}
                       checked={check_list.includes(item.id)}
                     />
-                    <div className="history_one_in_box2">
-                      <p className="history_formula">{item.monitor_number}</p>
-                      <p className="history_result">{item.monitor_result}</p>
-                      <p className="history_monitor_date">
-                        {item.monitor_date}
-                      </p>
-                    </div>
                   </div>
                 ))
               ) : (

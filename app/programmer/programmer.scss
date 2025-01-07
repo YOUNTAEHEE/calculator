@@ -413,18 +413,47 @@
                 }
               }
               .history_one_in_box2 {
+                width: 100%;
+                overflow: hidden;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                text-align: left;
+                &::-webkit-scrollbar {
+                  height: 7px;
+                }
+                &::-webkit-scrollbar-track {
+                  background: #bdbde9;
+                  border-radius: 5px;
+                }
+                &::-webkit-scrollbar-thumb {
+                  background: #b19ae0;
+                  border-radius: 5px;
+                }
                 .history_formula {
+                  width: 100%;
                   color: #666;
+                  text-align: left;
                 }
                 .history_result {
+                  width: 100%;
                   font-size: 1.1rem;
                   font-weight: 600;
                   margin-top: 10px;
+                  text-align: left;
                 }
                 .history_monitor_date {
                   font-size: 0.8rem;
                   color: #919191;
                   margin-top: 10px;
+                  text-align: left;
+                }
+                .history_pro_mode {
+                  margin-left: 5px;
+                  font-size: 0.8rem;
+                  color: #919191;
+                  margin-top: 10px;
+                  text-align: left;
                 }
               }
             }
@@ -910,18 +939,41 @@
                 }
               }
               .history_one_in_box2 {
+                width: 100%;
+                overflow: hidden;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                text-align: left;
+                &::-webkit-scrollbar {
+                  height: 7px;
+                }
+                &::-webkit-scrollbar-track {
+                  background: #bdbde9;
+                  border-radius: 5px;
+                }
+                &::-webkit-scrollbar-thumb {
+                  background: #b19ae0;
+                  border-radius: 5px;
+                }
                 .history_formula {
+                  width: 100%;
                   color: #666;
+                  text-align: left;
                 }
                 .history_result {
+                  width: 100%;
                   font-size: 1.1rem;
                   font-weight: 600;
                   margin-top: 10px;
+                  text-align: left;
                 }
                 .history_monitor_date {
+                  width: 100%;
                   font-size: 0.8rem;
                   color: #919191;
                   margin-top: 10px;
+                  text-align: left;
                 }
               }
             }

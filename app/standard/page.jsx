@@ -51,7 +51,7 @@ export default function Standard() {
   ];
 
   const CSVdata = history_list.map((item) => ({
-    monitor_number: item.monitor_number,
+    monitor_number: `'${item.monitor_number}`,
     monitor_result: item.monitor_result,
     monitor_date: item.monitor_date,
   }));
@@ -570,6 +570,13 @@ export default function Standard() {
               {history_list.length > 0 ? (
                 history_list.map((item, index) => (
                   <div className="history_one" key={item.id}>
+                    <div className="history_one_in_box2">
+                      <p className="history_formula">{item.monitor_number}</p>
+                      <p className="history_result">{item.monitor_result}</p>
+                      <p className="history_monitor_date">
+                        {item.monitor_date}
+                      </p>
+                    </div>
                     <input
                       className="history_one_check"
                       type="checkbox"
@@ -578,13 +585,6 @@ export default function Standard() {
                       }}
                       checked={check_list.includes(item.id)}
                     />
-                    <div className="history_one_in_box2">
-                      <p className="history_formula">{item.monitor_number}</p>
-                      <p className="history_result">{item.monitor_result}</p>
-                      <p className="history_monitor_date">
-                        {item.monitor_date}
-                      </p>
-                    </div>
                   </div>
                 ))
               ) : (

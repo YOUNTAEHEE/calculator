@@ -5,7 +5,7 @@ import { useState } from "react";
 
 export default function Nav() {
   const [choice_nav, setChoice_nav] = useState("standard");
-  const [choice_programmer, setChoice_programmer] = useState("word");
+  const [choice_programmer, setChoice_programmer] = useState("WORD");
   const router = useRouter();
 
   const handleNavClick = (type) => {
@@ -15,18 +15,18 @@ export default function Nav() {
       setChoice_programmer("");
       router.push("/standard");
     } else if (type === "programmer") {
-      setChoice_programmer("word");
-      router.push("/programmer?mode=word");
+      setChoice_programmer("WORD");
+      router.push("/programmer?mode=WORD");
     }
   };
 
   const handleProgrammerNavClick = (type) => {
     setChoice_programmer(type);
-    if (type === "word") {
+    if (type === "WORD") {
       router.push(`/programmer?mode=${type}`);
-    } else if (type === "dword") {
+    } else if (type === "DWORD") {
       router.push(`/programmer?mode=${type}`);
-    } else if (type === "qword") {
+    } else if (type === "QWORD") {
       router.push(`/programmer?mode=${type}`);
     }
   };
@@ -52,31 +52,31 @@ export default function Nav() {
       >
         <div
           className={`programmer_nav_title ${
-            choice_nav === "programmer" && choice_programmer === "word"
+            choice_nav === "programmer" && choice_programmer === "WORD"
               ? "on"
               : ""
           }`}
-          onClick={() => handleProgrammerNavClick("word")}
+          onClick={() => handleProgrammerNavClick("WORD")}
         >
           WORD
         </div>
         <div
           className={`programmer_nav_title ${
-            choice_nav === "programmer" && choice_programmer === "dword"
+            choice_nav === "programmer" && choice_programmer === "DWORD"
               ? "on"
               : ""
           }`}
-          onClick={() => handleProgrammerNavClick("dword")}
+          onClick={() => handleProgrammerNavClick("DWORD")}
         >
           DWORD
         </div>
         <div
           className={`programmer_nav_title ${
-            choice_nav === "programmer" && choice_programmer === "qword"
+            choice_nav === "programmer" && choice_programmer === "QWORD"
               ? "on"
               : ""
           }`}
-          onClick={() => handleProgrammerNavClick("qword")}
+          onClick={() => handleProgrammerNavClick("QWORD")}
         >
           QWORD
         </div>
