@@ -299,9 +299,9 @@ export default function Programmer() {
 
           const unsignedResult = (integerResult + mod) % mod;
 
-          setResult_BIN("0b" + padBinary(unsignedResult, 16)); // 16비트 이진수
-          setResult_HEX("0x" + padHex(unsignedResult, 4)); // 16비트 16진수
-          setResult_OCT("0o" + padOctal(unsignedResult, 6)); // 16비트 8진수
+          setResult_BIN("0b" + padBinary(unsignedResult)); // 16비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult)); // 16비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult)); // 16비트 8진수
           setResult_DEC(integerResult.toString()); // 10진수
           setResult(integerResult.toString());
           break;
@@ -320,9 +320,9 @@ export default function Programmer() {
 
           const unsignedResult = (integerResult + mod) % mod;
 
-          setResult_BIN("0b" + padBinary(unsignedResult, 32)); // 32비트 이진수
-          setResult_HEX("0x" + padHex(unsignedResult, 8)); // 32비트 16진수
-          setResult_OCT("0o" + padOctal(unsignedResult, 11)); // 32비트 8진수
+          setResult_BIN("0b" + padBinary(unsignedResult)); // 32비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult)); // 32비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult)); // 32비트 8진수
           setResult_DEC(integerResult.toString()); // 10진수
           setResult(integerResult.toString());
           break;
@@ -341,9 +341,9 @@ export default function Programmer() {
 
           const unsignedResult = (integerResult + mod) % mod;
 
-          setResult_BIN("0b" + padBinary(unsignedResult, 64)); // 64비트 이진수
-          setResult_HEX("0x" + padHex(unsignedResult, 16)); // 64비트 16진수
-          setResult_OCT("0o" + padOctal(unsignedResult, 22)); // 64비트 8진수
+          setResult_BIN("0b" + padBinary(unsignedResult)); // 64비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult)); // 64비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult)); // 64비트 8진수
           setResult_DEC(integerResult.toString()); // 10진수
           setResult(integerResult.toString());
           break;
@@ -455,9 +455,9 @@ export default function Programmer() {
           }
           const unsignedResult = (integerResult + mod) % mod;
 
-          setResult_BIN("0b" + padBinary(unsignedResult, 16)); // 16비트 이진수
-          setResult_HEX("0x" + padHex(unsignedResult, 4)); // 16비트 16진수
-          setResult_OCT("0o" + padOctal(unsignedResult, 6));
+          setResult_BIN("0b" + padBinary(unsignedResult)); // 16비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult)); // 16비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult));
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
@@ -481,9 +481,9 @@ export default function Programmer() {
             integerResult -= 4294967296;
           }
           const unsignedResult = (integerResult + mod) % mod;
-          setResult_BIN("0b" + padBinary(unsignedResult, 32)); // 32비트 이진수
-          setResult_HEX("0x" + padHex(unsignedResult, 8)); // 32비트 16진수
-          setResult_OCT("0o" + padOctal(unsignedResult, 11));
+          setResult_BIN("0b" + padBinary(unsignedResult)); // 32비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult)); // 32비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult));
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
@@ -527,9 +527,9 @@ export default function Programmer() {
             const unsignedResult = (integerResult + mod) % mod;
 
             setResult(integerResult.toString());
-            setResult_BIN("0b" + padBinary(unsignedResult, 64)); // 64비트 이진수
-            setResult_HEX("0x" + padHex(unsignedResult, 16)); // 64비트 16진수
-            setResult_OCT("0o" + padOctal(unsignedResult, 22));
+            setResult_BIN("0b" + padBinary(unsignedResult)); // 64비트 이진수
+            setResult_HEX("0x" + padHex(unsignedResult)); // 64비트 16진수
+            setResult_OCT("0o" + padOctal(unsignedResult));
             setResult_DEC(integerResult.toString());
             const format_result = integerResult.toString();
             const formData = new FormData();
