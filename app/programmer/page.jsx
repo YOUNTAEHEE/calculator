@@ -10,7 +10,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
 import { useSearchParams } from "next/navigation";
-import { CSVLink, CSVDownload } from "react-csv";
+import { CSVLink } from "react-csv";
 import {
   addProgrammer,
   getProgrammer,
@@ -41,6 +41,7 @@ export default function Programmer() {
 
   const CSVHeader = [
     { label: "날짜", key: "monitor_date" },
+    { label: "모드", key: "pro_mode" },
     { label: "계산식", key: "monitor_number" },
     { label: "답", key: "monitor_result" },
   ];
@@ -49,6 +50,7 @@ export default function Programmer() {
     monitor_number: `'${item.monitor_number}`,
     monitor_result: item.monitor_result,
     monitor_date: item.monitor_date,
+    pro_mode: item.pro_mode,
   }));
 
   useEffect(() => {
@@ -258,78 +260,101 @@ export default function Programmer() {
   const recalculateResult = (calculatedResult) => {
     try {
       let integerResult = BigInt(calculatedResult);
+
       const padBinary = (num, bits = 4) => {
-        const binary = num < 0n ? (-num).toString(2) : num.toString(2);
-        // 4비트 단위로 맞추기 위한 앞쪽 0 패딩
+        const binary = (num < 0n ? -num : num).toString(2);
         const padding = binary.length % bits;
         const paddedBinary =
           padding > 0 ? "0".repeat(bits - padding) + binary : binary;
-
-        // 4비트씩 그룹화하고 공백으로 구분
         return paddedBinary.match(/.{1,4}/g).join(" ");
       };
+
+      const padOctal = (num, bits = 3) => {
+        const octal = (num < 0n ? -num : num).toString(8);
+        const padding = octal.length % bits;
+        const paddedOctal =
+          padding > 0 ? "0".repeat(bits - padding) + octal : octal;
+        return paddedOctal.match(/.{1,3}/g).join(" ");
+      };
+
+      const padHex = (num, bits = 4) => {
+        const hex = (num < 0n ? -num : num).toString(16).toUpperCase();
+        const padding = hex.length % bits;
+        const paddedHex = padding > 0 ? "0".repeat(bits - padding) + hex : hex;
+        return paddedHex.match(/.{1,4}/g).join(" ");
+      };
+
       switch (mode) {
         case "WORD": {
-          // 16비트 범위로 제한 (-32768 ~ 32767)
           const mod = 1n << 16n; // 2^16
+          const maxPositive = 32767n;
+          const minNegative = -32768n;
+
           integerResult = ((integerResult % mod) + mod) % mod;
-          if (integerResult >= 32768n) {
+
+          // 음수 처리 (2의 보수 적용)
+          if (integerResult > maxPositive) {
             integerResult -= mod;
           }
-          // 최종 number로 캐스팅(이제 16비트 범위 안이므로 안전)
-          integerResult = Number(integerResult);
-          const absResult = Math.abs(integerResult);
-          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
-          setResult_OCT("0o" + absResult.toString(8)); //8진수
-          setResult_BIN("0b" + padBinary(absResult)); //2진수
-          setResult_DEC(integerResult.toString()); //10진수
 
+          const unsignedResult = (integerResult + mod) % mod;
+
+          setResult_BIN("0b" + padBinary(unsignedResult, 16)); // 16비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult, 4)); // 16비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult, 6)); // 16비트 8진수
+          setResult_DEC(integerResult.toString()); // 10진수
           setResult(integerResult.toString());
-
           break;
         }
         case "DWORD": {
-          // 32비트 범위로 제한 (-2147483648 ~ 2147483647)
           const mod = 1n << 32n; // 2^32
+          const maxPositive = 2147483647n;
+          const minNegative = -2147483648n;
+
           integerResult = ((integerResult % mod) + mod) % mod;
-          if (integerResult >= 2147483648n) {
+
+          // 음수 처리 (2의 보수 적용)
+          if (integerResult > maxPositive) {
             integerResult -= mod;
           }
-          integerResult = Number(integerResult);
-          const absResult = Math.abs(integerResult);
-          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
-          setResult_OCT("0o" + absResult.toString(8)); //8진수
-          setResult_BIN("0b" + padBinary(absResult)); //2진수
-          setResult_DEC(integerResult.toString()); //10진수
 
+          const unsignedResult = (integerResult + mod) % mod;
+
+          setResult_BIN("0b" + padBinary(unsignedResult, 32)); // 32비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult, 8)); // 32비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult, 11)); // 32비트 8진수
+          setResult_DEC(integerResult.toString()); // 10진수
           setResult(integerResult.toString());
-
           break;
         }
         case "QWORD": {
-          try {
-            // 64비트 범위로 제한 (-2^63 ~ 2^63-1)
-            const mod = 1n << 64n; // 2^64
-            integerResult = ((integerResult % mod) + mod) % mod;
-            const boundary = 1n << 63n; // 2^63
-            if (integerResult >= boundary) {
-              integerResult -= mod;
-            }
+          const mod = 1n << 64n; // 2^64
+          const maxPositive = 9223372036854775807n;
+          const minNegative = -9223372036854775808n;
 
-            setResult(integerResult.toString());
-            setResult_HEX("0x" + integerResult.toString(16).toUpperCase());
-            setResult_OCT("0o" + integerResult.toString(8));
-            setResult_BIN("0b" + integerResult.toString(2));
-            setResult_DEC(integerResult.toString());
-          } catch (error) {
-            console.error("QWORD calculation error:", error);
-            setResult("Error: Number too large");
+          integerResult = ((integerResult % mod) + mod) % mod;
+
+          // 음수 처리 (2의 보수 적용)
+          if (integerResult > maxPositive) {
+            integerResult -= mod;
           }
+
+          const unsignedResult = (integerResult + mod) % mod;
+
+          setResult_BIN("0b" + padBinary(unsignedResult, 64)); // 64비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult, 16)); // 64비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult, 22)); // 64비트 8진수
+          setResult_DEC(integerResult.toString()); // 10진수
+          setResult(integerResult.toString());
           break;
         }
+        default:
+          console.error("Invalid mode:", mode);
+          break;
       }
     } catch (error) {
       console.error("Recalculation error:", error);
+      setResult("Error");
     }
   };
 
@@ -394,7 +419,7 @@ export default function Programmer() {
       let integerResult = parseInt(result);
       // 2진수 변환 시 4비트 단위로 0을 채우는 함수
       const padBinary = (num, bits = 4) => {
-        const binary = Math.abs(num).toString(2);
+        const binary = (num < 0n ? -num : num).toString(2); // BigInt 지원
         // 4비트 단위로 맞추기 위한 앞쪽 0 패딩
         const padding = binary.length % bits;
         const paddedBinary =
@@ -403,6 +428,22 @@ export default function Programmer() {
         // 4비트씩 그룹화하고 공백으로 구분
         return paddedBinary.match(/.{1,4}/g).join(" ");
       };
+
+      const padOctal = (num, bits = 3) => {
+        const octal = (num < 0n ? -num : num).toString(8);
+        const padding = octal.length % bits;
+        const paddedOctal =
+          padding > 0 ? "0".repeat(bits - padding) + octal : octal;
+        return paddedOctal.match(/.{1,3}/g).join(" ");
+      };
+
+      const padHex = (num, bits = 4) => {
+        const hex = (num < 0n ? -num : num).toString(16).toUpperCase();
+        const padding = hex.length % bits;
+        const paddedHex = padding > 0 ? "0".repeat(bits - padding) + hex : hex;
+        return paddedHex.match(/.{1,4}/g).join(" ");
+      };
+
       const newId = uuidv4();
       switch (mode) {
         case "WORD": {
@@ -412,10 +453,11 @@ export default function Programmer() {
           if (integerResult >= 32768) {
             integerResult -= 65536;
           }
-          const absResult = Math.abs(integerResult);
-          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
-          setResult_OCT("0o" + absResult.toString(8)); //8진수
-          setResult_BIN("0b" + padBinary(absResult)); //2진수
+          const unsignedResult = (integerResult + mod) % mod;
+
+          setResult_BIN("0b" + padBinary(unsignedResult, 16)); // 16비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult, 4)); // 16비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult, 6));
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
@@ -438,10 +480,10 @@ export default function Programmer() {
           if (integerResult >= 2147483648) {
             integerResult -= 4294967296;
           }
-          const absResult = Math.abs(integerResult);
-          setResult_HEX("0x" + absResult.toString(16).toUpperCase()); //16진수
-          setResult_OCT("0o" + absResult.toString(8)); //8진수
-          setResult_BIN("0b" + padBinary(absResult)); //2진수
+          const unsignedResult = (integerResult + mod) % mod;
+          setResult_BIN("0b" + padBinary(unsignedResult, 32)); // 32비트 이진수
+          setResult_HEX("0x" + padHex(unsignedResult, 8)); // 32비트 16진수
+          setResult_OCT("0o" + padOctal(unsignedResult, 11));
           setResult_DEC(integerResult.toString()); //10진수
 
           setResult(integerResult.toString());
@@ -482,11 +524,12 @@ export default function Programmer() {
             if (integerResult >= BigInt("9223372036854775808")) {
               integerResult -= mod;
             }
+            const unsignedResult = (integerResult + mod) % mod;
 
             setResult(integerResult.toString());
-            setResult_HEX("0x" + integerResult.toString(16).toUpperCase());
-            setResult_OCT("0o" + integerResult.toString(8));
-            setResult_BIN("0b" + integerResult.toString(2));
+            setResult_BIN("0b" + padBinary(unsignedResult, 64)); // 64비트 이진수
+            setResult_HEX("0x" + padHex(unsignedResult, 16)); // 64비트 16진수
+            setResult_OCT("0o" + padOctal(unsignedResult, 22));
             setResult_DEC(integerResult.toString());
             const format_result = integerResult.toString();
             const formData = new FormData();
@@ -499,7 +542,7 @@ export default function Programmer() {
             loadHistory();
           } catch (error) {
             console.error("QWORD calculation error:", error);
-            setResult("Error: Number too large");
+            setResult("Error");
           }
           break;
         }
