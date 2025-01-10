@@ -5,10 +5,8 @@ import Image from "next/image";
 import styles from "./programmer.scss";
 import { useState, useEffect, useCallback } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
-import { connectDB } from "../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
-import { resolveObjectURL } from "buffer";
 import { useSearchParams } from "next/navigation";
 import { CSVLink } from "react-csv";
 import {
@@ -16,7 +14,7 @@ import {
   getProgrammer,
   deleteProgrammer,
   getProgrammerByDate,
-} from "../../lib/actions";
+} from "../../../lib/actions";
 export default function Programmer() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");

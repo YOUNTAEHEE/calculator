@@ -1,0 +1,15 @@
+.top_nav_wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  .top_nav_title {
+    font-size: 1rem;
+    color: #b1b1cf;
+    font-weight: 600;
+    cursor: pointer;
+    &.on {
+      color: #646494;
+    }
+  }
+}

@@ -2,7 +2,7 @@
 import styles from "./clock.scss";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-
+import TopNav from "../topNav/TopNav";
 export default function Clock() {
   const [currentTime, setCurrentTime] = useState("");
   useEffect(() => {
@@ -30,5 +30,10 @@ export default function Clock() {
     return () => clearInterval(timer);
   }, []);
 
-  return <div className="clock_wrap">현재 시각 {currentTime}</div>;
+  return (
+    <div className="clock_wrap">
+      <div className="clock_title">현재 시각 {currentTime}</div>
+      <TopNav />
+    </div>
+  );
 }

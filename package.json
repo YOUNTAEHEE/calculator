@@ -11,6 +11,7 @@
   "dependencies": {
     "@nextui-org/date-picker": "^2.3.8",
     "@nextui-org/react": "^2.6.10",
+    "axios": "^1.7.9",
     "framer-motion": "^11.15.0",
     "mongoose": "^8.8.4",
     "next": "15.0.3",

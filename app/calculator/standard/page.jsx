@@ -5,7 +5,7 @@ import Image from "next/image";
 import styles from "./standard.scss";
 import { useState, useEffect, useCallback } from "react";
 import { FaDeleteLeft } from "react-icons/fa6";
-import { connectDB } from "../../lib/connectDB";
+import { connectDB } from "../../../lib/connectDB";
 import { FaTrashAlt } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { resolveObjectURL } from "buffer";
@@ -15,7 +15,7 @@ import {
   deleteStandard,
   getStandard,
   getStandardByDate,
-} from "../../lib/actions";
+} from "../../../lib/actions";
 
 export default function Standard() {
   const [monitor_number, setMonitor_number] = useState("");

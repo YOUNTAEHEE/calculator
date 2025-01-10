@@ -13,21 +13,21 @@ export default function Nav() {
     console.log("Updated choice_nav:", type);
     if (type === "standard") {
       setChoice_programmer("");
-      router.push("/standard");
+      router.push("/calculator/standard");
     } else if (type === "programmer") {
       setChoice_programmer("WORD");
-      router.push("/programmer?mode=WORD");
+      router.push("/calculator/programmer?mode=WORD");
     }
   };
 
   const handleProgrammerNavClick = (type) => {
     setChoice_programmer(type);
     if (type === "WORD") {
-      router.push(`/programmer?mode=${type}`);
+      router.push(`/calculator/programmer?mode=${type}`);
     } else if (type === "DWORD") {
-      router.push(`/programmer?mode=${type}`);
+      router.push(`/calculator/programmer?mode=${type}`);
     } else if (type === "QWORD") {
-      router.push(`/programmer?mode=${type}`);
+      router.push(`/calculator/programmer?mode=${type}`);
     }
   };
 
