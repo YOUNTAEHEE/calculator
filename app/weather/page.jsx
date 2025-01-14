@@ -3,6 +3,7 @@ import { BeatLoader } from "react-spinners";
 import "./weather.scss";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -28,7 +29,11 @@ ChartJS.register(
 export default function Weather() {
   const [chartData, setChartData] = useState(null);
   const [error, setError] = useState(null);
+  const [isSearchTriggered, setIsSearchTriggered] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState("0"); // 기본 지역 코드 설정
+  const [filteredData, setFilteredData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0); // 현재 페이지
+  const itemsPerPage = 15; // 한 페이지에 표시할 데이터 수
   const regions = [
     { code: "0", name: "전체" },
     { code: "101", name: "춘천" },
@@ -44,45 +49,24 @@ export default function Weather() {
 
     return `${year}${month}${day}`;
   };
-  const [date, setDate] = useState(getToday());
-  const fetchWeather = async (selectedDate, regionCode) => {
+  const [date_first, setDate_first] = useState(getToday() + "0000");
+  const [date_last, setDate_last] = useState(getToday() + "2359");
+  const fetchWeather = async (
+    selectedDate_first,
+    selectedDate_last,
+    regionCode
+  ) => {
     try {
       const response = await axios.get(
-        `/api/weatherAPI?date=${selectedDate}&region=${regionCode}`
+        `/api/weatherAPI?date-first=${selectedDate_first}&date-last=${selectedDate_last}&region=${regionCode}`
       );
       console.log("API 응답 데이터:", response.data);
 
       const parsedData = parseWeatherData(response.data);
       console.log("파싱된 데이터:", parsedData);
-
-      // 필터링된 데이터 생성
-      const filteredData = parsedData.filter(
-        (data) => !isNaN(parseFloat(data.TA)) && !isNaN(parseFloat(data.WS)) // 유효한 값만
-      );
-
-      // 필터링된 데이터로 차트 값 생성
-      const labels = filteredData.map((data) => data.YYMMDDHHMI);
-      const temperatureData = filteredData.map((data) => parseFloat(data.TA));
-      const windSpeedData = filteredData.map((data) => parseFloat(data.WS));
-      setChartData({
-        labels,
-        datasets: [
-          {
-            label: "기온 (°C)",
-            data: temperatureData,
-            borderColor: "rgba(255, 99, 132, 1)",
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            fill: true,
-          },
-          {
-            label: "풍속 (m/s)",
-            data: windSpeedData,
-            borderColor: "rgba(54, 162, 235, 1)",
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            fill: true,
-          },
-        ],
-      });
+      setFilteredData(parsedData); // 전체 데이터를 저장
+      setCurrentPage(0);
+      updateChartData(parsedData.slice(0, itemsPerPage)); // 처음 15개만 표시
     } catch (error) {
       console.error("Error fetching weather data:", error.message);
       setError(error.message);
@@ -125,10 +109,66 @@ export default function Weather() {
       })
       .filter(Boolean);
   };
+  const updateChartData = (data) => {
+    const labels = data.map((entry) => entry.YYMMDDHHMI);
+    const temperatureData = data.map((entry) => parseFloat(entry.TA));
+    const windSpeedData = data.map((entry) => parseFloat(entry.WS));
 
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: "기온 (°C)",
+          data: temperatureData,
+          borderColor: "rgba(255, 99, 132, 1)",
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          fill: true,
+        },
+        {
+          label: "풍속 (m/s)",
+          data: windSpeedData,
+          borderColor: "rgba(54, 162, 235, 1)",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          fill: true,
+        },
+      ],
+    });
+  };
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage); // 총 페이지 수 계산
+  const handleNextPage = () => {
+    const nextPage = currentPage + 1;
+    const startIndex = nextPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+
+    if (startIndex < filteredData.length) {
+      setCurrentPage(nextPage);
+      updateChartData(filteredData.slice(startIndex, endIndex));
+    }
+  };
+
+  const handlePrevPage = () => {
+    const prevPage = currentPage - 1;
+    if (prevPage >= 0) {
+      const startIndex = prevPage * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+
+      setCurrentPage(prevPage);
+      updateChartData(filteredData.slice(startIndex, endIndex));
+    }
+  };
+  const handleSearch = () => {
+    setIsSearchTriggered(true); // 검색 버튼 클릭 시 상태 업데이트
+  };
   useEffect(() => {
-    fetchWeather(date, selectedRegion); // date 값을 전달
-  }, [date, selectedRegion]);
+    if (isSearchTriggered) {
+      fetchWeather(date_first, date_last, selectedRegion);
+      setIsSearchTriggered(false); // 검색 후 상태 초기화
+    }
+  }, [isSearchTriggered]);
+  useEffect(() => {
+    // 페이지 로드 시 초기 데이터 가져오기
+    fetchWeather(date_first, date_last, selectedRegion);
+  }, []); // 빈 의존성 배열로 초기 한 번 실행
 
   // 차트 데이터 확인용
   useEffect(() => {
@@ -154,6 +194,7 @@ export default function Weather() {
           <select
             value={selectedRegion}
             onChange={(e) => setSelectedRegion(e.target.value)}
+            className="weather_search_select"
           >
             {regions.map((region) => (
               <option key={region.code} value={region.code}>
@@ -163,11 +204,20 @@ export default function Weather() {
           </select>
           <input
             type="text"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={date_first}
+            onChange={(e) => setDate_first(e.target.value)}
             placeholder="YYYYMMDDHHMI"
+            className="weather_search_input"
           />
-          <button onClick={() => fetchWeather(date, selectedRegion)}>
+          ~
+          <input
+            type="text"
+            value={date_last}
+            onChange={(e) => setDate_last(e.target.value)}
+            placeholder="YYYYMMDDHHMI"
+            className="weather_search_input"
+          />
+          <button onClick={handleSearch} className="weather_search_btn">
             검색
           </button>
         </div>
@@ -188,6 +238,25 @@ export default function Weather() {
             },
           }}
         />
+      </div>
+      <div className="weather_page_wrap">
+        <button
+          onClick={handlePrevPage}
+          disabled={currentPage === 0}
+          className="weather_page_btn"
+        >
+          <SlArrowLeft />
+        </button>
+        <span className="weather_page_text">
+          {currentPage + 1} / {totalPages}
+        </span>
+        <button
+          onClick={handleNextPage}
+          disabled={(currentPage + 1) * itemsPerPage >= filteredData.length}
+          className="weather_page_btn"
+        >
+          <SlArrowRight />
+        </button>
       </div>
     </div>
   );

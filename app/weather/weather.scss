@@ -19,6 +19,31 @@
       align-items: center;
       margin-bottom: 20px;
       gap: 5px;
+      .weather_search_select {
+        width: 100px;
+        height: 30px;
+        border: 1px solid #bebebe;
+        border-radius: 5px;
+        padding: 5px;
+      }
+      .weather_search_input {
+        width: 160px;
+        height: 30px;
+        border: 1px solid #bebebe;
+        border-radius: 5px;
+        padding: 5px;
+        outline: none;
+      }
+      .weather_search_btn {
+        width: 70px;
+        height: 30px;
+        border: 1px solid #a186d6;
+        border-radius: 5px;
+        padding: 5px;
+        background-color: #a186d6;
+        color: white;
+        cursor: pointer;
+      }
     }
   }
 
@@ -26,6 +51,30 @@
     width: 80%;
     height: 600px;
     margin: 0 auto;
+  }
+  .weather_page_wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    gap: 10px;
+    .weather_page_btn {
+      width: 20px;
+      height: 30px;
+      border: none;
+      color: #a186d6;
+      font-weight: 800;
+      background-color: transparent;
+      cursor: pointer;
+      &:disabled {
+        color: #bebebe;
+      }
+    }
+    .weather_page_text {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #4b4b4b;
+    }
   }
 }
 .loding_icon {
