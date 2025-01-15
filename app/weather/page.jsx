@@ -52,8 +52,8 @@ export default function Weather() {
 
     return `${year}${month}${day}`;
   };
-  const [date_first, setDate_first] = useState(getToday() + "0000");
-  const [date_last, setDate_last] = useState(getToday() + "2359");
+  const [date_first, setDate_first] = useState(getToday());
+  const [date_last, setDate_last] = useState(getToday());
   const fetchWeather = async () => {
     try {
       const response = await axios.get(
@@ -205,7 +205,7 @@ export default function Weather() {
             type="text"
             value={date_first}
             onChange={(e) => setDate_first(e.target.value)}
-            placeholder="YYYYMMDDHHMI"
+            placeholder="YYYYMMDD"
             className="weather_search_input"
           />
           ~
@@ -213,7 +213,7 @@ export default function Weather() {
             type="text"
             value={date_last}
             onChange={(e) => setDate_last(e.target.value)}
-            placeholder="YYYYMMDDHHMI"
+            placeholder="YYYYMMDD"
             className="weather_search_input"
           />
           <button onClick={handleSearch} className="weather_search_btn">
@@ -255,7 +255,7 @@ export default function Weather() {
                   pinch: {
                     enabled: true,
                   },
-                  mode: "xy",
+                  mode: "x",
                 },
               },
             },
@@ -285,15 +285,15 @@ export default function Weather() {
         <table className="weather_table">
           <thead>
             <tr>
-              <th>상대습도 (%)</th>
-              <th>지면온도 (C)</th>
+              <th>기온 (°C)</th>
+              <th>풍속 (m/s)</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.map((item, index) => (
               <tr key={uuidv4()}>
-                <td>{item.HM}</td>
                 <td>{item.TA}</td>
+                <td>{item.WS}</td>
               </tr>
             ))}
           </tbody>

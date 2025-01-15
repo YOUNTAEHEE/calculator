@@ -118,48 +118,6 @@
     }
   }
 }
-
-@media (max-width: 1000px), (max-width: 500px) {
-  .weather_container {
-    .weather_top_box {
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 0 auto;
-      .weather_title {
-        margin-right: 10px;
-      }
-      .weather_search_box {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-    }
-
-    .weather_chart {
-      height: 250px;
-      margin: 0 auto;
-    }
-    .weather_page_wrap {
-      margin-bottom: 60px;
-    }
-    .weather_table_wrap {
-      width: 90%;
-    }
-  }
-}
-@media (max-width: 500px) {
-  .weather_container {
-    .weather_chart {
-      height: 200px;
-    }
-    .weather_page_wrap {
-      margin-bottom: 30px;
-    }
-    .weather_table_wrap {
-      width: 100%;
-    }
-  }
-}
-
 .loding_icon {
   display: flex;
   align-items: center;

@@ -11,6 +11,8 @@ export default function TopNav() {
       router.push("/calculator/standard");
     } else if (type === "weather") {
       router.push("/weather");
+    } else if (type === "weatherStudy") {
+      router.push("/weatherStudy");
     }
   };
   return (
@@ -29,6 +31,15 @@ export default function TopNav() {
         onClick={() => handleTopNavClick("weather")}
       >
         기상청
+      </div>
+      <span>|</span>
+      <div
+        className={`top_nav_title ${
+          choice_top_nav === "weatherStudy" ? "on" : ""
+        }`}
+        onClick={() => handleTopNavClick("weatherStudy")}
+      >
+        기상청 공부
       </div>
     </div>
   );
