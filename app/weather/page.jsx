@@ -1,9 +1,11 @@
 "use client";
+import { v4 as uuidv4 } from "uuid";
 import { BeatLoader } from "react-spinners";
-import "./weather.scss";
+import style from "./weather.scss";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
+import zoomPlugin from "chartjs-plugin-zoom";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -24,18 +26,19 @@ ChartJS.register(
   PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  zoomPlugin
 );
 export default function Weather() {
   const [chartData, setChartData] = useState(null);
   const [error, setError] = useState(null);
   const [isSearchTriggered, setIsSearchTriggered] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState("0"); // 기본 지역 코드 설정
+  const [selectedRegion, setSelectedRegion] = useState("119"); // 기본 지역 코드 설정
   const [filteredData, setFilteredData] = useState([]);
   const [currentPage, setCurrentPage] = useState(0); // 현재 페이지
   const itemsPerPage = 15; // 한 페이지에 표시할 데이터 수
   const regions = [
-    { code: "0", name: "전체" },
+    // { code: "0", name: "전체" },
     { code: "101", name: "춘천" },
     { code: "100", name: "대관령" },
     { code: "119", name: "수원" },
@@ -51,14 +54,10 @@ export default function Weather() {
   };
   const [date_first, setDate_first] = useState(getToday() + "0000");
   const [date_last, setDate_last] = useState(getToday() + "2359");
-  const fetchWeather = async (
-    selectedDate_first,
-    selectedDate_last,
-    regionCode
-  ) => {
+  const fetchWeather = async () => {
     try {
       const response = await axios.get(
-        `/api/weatherAPI?date-first=${selectedDate_first}&date-last=${selectedDate_last}&region=${regionCode}`
+        `/api/weatherAPI?date-first=${date_first}&date-last=${date_last}&region=${selectedRegion}`
       );
       console.log("API 응답 데이터:", response.data);
 
@@ -161,13 +160,13 @@ export default function Weather() {
   };
   useEffect(() => {
     if (isSearchTriggered) {
-      fetchWeather(date_first, date_last, selectedRegion);
+      fetchWeather();
       setIsSearchTriggered(false); // 검색 후 상태 초기화
     }
   }, [isSearchTriggered]);
   useEffect(() => {
     // 페이지 로드 시 초기 데이터 가져오기
-    fetchWeather(date_first, date_last, selectedRegion);
+    fetchWeather();
   }, []); // 빈 의존성 배열로 초기 한 번 실행
 
   // 차트 데이터 확인용
@@ -235,6 +234,30 @@ export default function Weather() {
                 display: true,
                 text: "기온 및 풍속 시간 변화",
               },
+              zoom: {
+                pan: {
+                  enabled: true, // 팬 기능 활성화
+                  mode: "xy", // X축 방향으로만 이동 가능
+                  threshold: 10, // 드래그 시작을 위한 최소 이동 거리(px)
+                  onPanStart: () => {
+                    document.querySelector(".weather_chart").style.cursor =
+                      "grabbing";
+                  },
+                  onPanComplete: () => {
+                    document.querySelector(".weather_chart").style.cursor =
+                      "grab";
+                  },
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                  },
+                  pinch: {
+                    enabled: true,
+                  },
+                  mode: "xy",
+                },
+              },
             },
           }}
         />
@@ -257,6 +280,24 @@ export default function Weather() {
         >
           <SlArrowRight />
         </button>
+      </div>
+      <div className="weather_table_wrap">
+        <table className="weather_table">
+          <thead>
+            <tr>
+              <th>상대습도 (%)</th>
+              <th>지면온도 (C)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((item, index) => (
+              <tr key={uuidv4()}>
+                <td>{item.HM}</td>
+                <td>{item.TA}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

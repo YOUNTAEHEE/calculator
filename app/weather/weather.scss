@@ -1,11 +1,11 @@
 .weather_container {
   width: 100%;
-  height: 100vh;
   padding: 10px 25px;
   .weather_top_box {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
     .weather_title {
       font-size: 2rem;
       font-weight: bold;
@@ -51,6 +51,10 @@
     width: 80%;
     height: 600px;
     margin: 0 auto;
+    cursor: grab;
+    .chart-container:active {
+      cursor: grabbing; /* 드래그 중일 때 손 모양 */
+    }
   }
   .weather_page_wrap {
     display: flex;
@@ -58,6 +62,7 @@
     align-items: center;
     margin-top: 30px;
     gap: 10px;
+    margin-bottom: 80px;
     .weather_page_btn {
       width: 20px;
       height: 30px;
@@ -76,10 +81,46 @@
       color: #4b4b4b;
     }
   }
+  .weather_table_wrap {
+    width: 80%;
+    margin: 0 auto;
+
+    .weather_table {
+      width: 100%;
+
+      border-collapse: collapse;
+      border-spacing: 0;
+      border: 1px solid #cebbf0;
+      border-radius: 5px;
+      thead {
+        background-color: #cebbf0;
+        color: white;
+        tr {
+          th {
+            font-weight: 400;
+            font-size: 1rem;
+            padding: 10px;
+          }
+        }
+      }
+      tbody {
+        tr {
+          td {
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 400;
+            color: #4b4b4b;
+            border: 1px solid #cebbf0;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
 }
 .loding_icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 100vh;
 }
