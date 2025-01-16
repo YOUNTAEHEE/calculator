@@ -43,21 +43,29 @@ export default function Weather() {
     { code: "100", name: "대관령" },
     { code: "119", name: "수원" },
   ];
-  // 오늘 날짜를 기본값으로 설정
-  const getToday = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-
-    return `${year}${month}${day}`;
+  const formatAPIDate = (date) => {
+    console.log("date", date);
+    const formattedDate = date.replace(/-/g, "").trim();
+    console.log("formattedDate", formattedDate);
+    return formattedDate;
   };
-  const [date_first, setDate_first] = useState(getToday());
-  const [date_last, setDate_last] = useState(getToday());
+
+  const getTodayDate = () => {
+    const now = new Date();
+    let year = now.getFullYear(); // 년도
+    let month = String(now.getMonth() + 1).padStart(2, "0"); // 월
+    let day = String(now.getDate()).padStart(2, "0"); // 날짜
+    return `${year}-${month}-${day}`;
+  };
+
+  const [date_first, setDate_first] = useState(getTodayDate());
+  const [date_last, setDate_last] = useState(getTodayDate());
   const fetchWeather = async () => {
     try {
       const response = await axios.get(
-        `/api/weatherAPI?date-first=${date_first}&date-last=${date_last}&region=${selectedRegion}`
+        `/api/weatherAPI?date-first=${formatAPIDate(
+          date_first
+        )}&date-last=${formatAPIDate(date_last)}&region=${selectedRegion}`
       );
       console.log("API 응답 데이터:", response.data);
 
@@ -202,19 +210,19 @@ export default function Weather() {
             ))}
           </select>
           <input
-            type="text"
+            type="date"
+            id="date_first"
             value={date_first}
-            onChange={(e) => setDate_first(e.target.value)}
-            placeholder="YYYYMMDD"
             className="weather_search_input"
+            onChange={(e) => setDate_first(e.target.value)}
           />
           ~
           <input
-            type="text"
+            type="date"
+            id="date_last"
             value={date_last}
-            onChange={(e) => setDate_last(e.target.value)}
-            placeholder="YYYYMMDD"
             className="weather_search_input"
+            onChange={(e) => setDate_last(e.target.value)}
           />
           <button onClick={handleSearch} className="weather_search_btn">
             검색

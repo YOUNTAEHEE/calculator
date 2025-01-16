@@ -11,8 +11,8 @@ export default function TopNav() {
       router.push("/calculator/standard");
     } else if (type === "weather") {
       router.push("/weather");
-    } else if (type === "weatherStudy") {
-      router.push("/weatherStudy");
+    } else if (type === "weatherPage") {
+      router.push("/weatherPage");
     }
   };
   return (
@@ -25,21 +25,21 @@ export default function TopNav() {
       >
         계산기
       </div>
-      <span>|</span>
+      {/* <span>|</span>
       <div
         className={`top_nav_title ${choice_top_nav === "weather" ? "on" : ""}`}
         onClick={() => handleTopNavClick("weather")}
       >
         기상청
-      </div>
+      </div> */}
       <span>|</span>
       <div
         className={`top_nav_title ${
-          choice_top_nav === "weatherStudy" ? "on" : ""
+          choice_top_nav === "weatherPage" ? "on" : ""
         }`}
-        onClick={() => handleTopNavClick("weatherStudy")}
+        onClick={() => handleTopNavClick("weatherPage")}
       >
-        기상청 공부
+        기상청
       </div>
     </div>
   );
