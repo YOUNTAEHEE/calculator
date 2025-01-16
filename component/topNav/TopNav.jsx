@@ -11,8 +11,8 @@ export default function TopNav() {
       router.push("/calculator/standard");
     } else if (type === "weather") {
       router.push("/weather");
-    } else if (type === "weatherPage") {
-      router.push("/weatherPage");
+    } else if (type === "weatherpage") {
+      router.push("/weatherpage");
     }
   };
   return (
@@ -35,9 +35,9 @@ export default function TopNav() {
       <span>|</span>
       <div
         className={`top_nav_title ${
-          choice_top_nav === "weatherPage" ? "on" : ""
+          choice_top_nav === "weatherpage" ? "on" : ""
         }`}
-        onClick={() => handleTopNavClick("weatherPage")}
+        onClick={() => handleTopNavClick("weatherpage")}
       >
         기상청
       </div>
