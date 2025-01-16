@@ -88,6 +88,7 @@ export default function WeatherPage() {
   const fetchWeather = async () => {
     try {
       setIsLoading(true);
+      setViewData([]);
       const response = await axios.get(
         `/api/weatherAPI?date-first=${formatAPIDate(
           date_first
@@ -97,9 +98,12 @@ export default function WeatherPage() {
 
       if (data && Array.isArray(data)) {
         setTotalData(data);
-        setViewData(viewWeatherData(data.slice(0, currentPage * limit)));
+        setCurrentPage(1);
+
+        setViewData(viewWeatherData(data.slice(0, limit)));
       } else {
         setTotalData([]);
+        setViewData([]);
       }
     } catch (err) {
       console.log(err);
@@ -223,7 +227,9 @@ export default function WeatherPage() {
                 onChange={(e) => setSelectedRegion(e.target.value)}
                 value={selectedRegion}
               >
+                <option value="108">서울</option>
                 <option value="119">수원</option>
+                <option value="112">인천</option>
                 <option value="100">대관령</option>
                 <option value="101">춘천</option>
               </select>
@@ -296,7 +302,11 @@ export default function WeatherPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="2">데이터가 없습니다.</td>
+                    <td colSpan="2">
+                      <div className="loding_icon_table">
+                        <BeatLoader color="#b19ae0" />
+                      </div>
+                    </td>
                   </tr>
                 )}
               </tbody>
