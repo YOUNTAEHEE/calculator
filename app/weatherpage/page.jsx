@@ -18,7 +18,7 @@ import {
   Legend,
 } from "chart.js";
 
-// Chart.js를 초기화합니다.
+// Chart.js 초기화
 ChartJS.register(
   LineElement,
   CategoryScale,
